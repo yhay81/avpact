@@ -1,17 +1,17 @@
-# RenderPact
+# AVPact
 
 Declarative, inspectable, and verifiable media transformations.
 
 > Status: concept stage. The proposed engine uses FFmpeg but does not expose its full option surface as the primary contract.
 
-RenderPact compiles a small set of media intents into a deterministic execution plan. The plan records streams, codecs, filters, expected outputs, resource limits, and verification checks before any transformation starts.
+AVPact compiles a small set of media intents into a deterministic execution plan. The plan records streams, codecs, filters, expected outputs, resource limits, and verification checks before any transformation starts.
 
 ```bash
-renderpact inspect input.mp4
-renderpact plan clip input.mp4 --from 00:10 --to 00:30
-renderpact plan transcode input.mov --target web
-renderpact apply plan_01J...
-renderpact verify rcpt_01J...
+avpact inspect input.mp4
+avpact plan clip input.mp4 --from 00:10 --to 00:30
+avpact plan transcode input.mov --target web
+avpact apply plan_01J...
+avpact verify rcpt_01J...
 ```
 
 ## Why

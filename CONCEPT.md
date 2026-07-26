@@ -1,8 +1,8 @@
-# RenderPact concept
+# AVPact concept
 
 ## One-line thesis
 
-RenderPact turns typed media intentions into inspectable execution plans,
+AVPact turns typed media intentions into inspectable execution plans,
 verified outputs, and reproducible transformation receipts.
 
 ## Problem
@@ -43,12 +43,12 @@ plan, execute it safely, and verify the resulting artifact.**
 ## Proposed command contract
 
 ```text
-renderpact schema --brief --format json
-renderpact inspect input.mp4 --format json
-renderpact plan recipe.json --out plan.json --format json
-renderpact apply plan.json --progress ndjson --format json
-renderpact verify output.mp4 --against plan.json --format json
-renderpact receipt show <receipt-id> --format json
+avpact schema --brief --format json
+avpact inspect input.mp4 --format json
+avpact plan recipe.json --out plan.json --format json
+avpact apply plan.json --progress ndjson --format json
+avpact verify output.mp4 --against plan.json --format json
+avpact receipt show <receipt-id> --format json
 ```
 
 ## Recipe model
@@ -123,7 +123,7 @@ Version 0.1 will support:
 
 ## Differentiation and defensibility
 
-RenderPact does not hide FFmpeg; it makes its decisions explicit and verifiable.
+AVPact does not hide FFmpeg; it makes its decisions explicit and verifiable.
 The typed recipe schema, deterministic planner, compatibility knowledge, and
 fixture corpus can become a durable layer used by both agents and applications.
 
@@ -144,5 +144,5 @@ fixture corpus can become a durable layer used by both agents and applications.
 - Temporary disk requirements can exceed estimates.
 - Raw-filter escape hatches can undermine the typed safety model.
 
-RenderPact should promise reproducible intent and verified properties, not
+AVPact should promise reproducible intent and verified properties, not
 universal byte-for-byte output identity.
