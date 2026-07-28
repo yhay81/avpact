@@ -3093,6 +3093,10 @@ mod tests {
             validate_plan(&first).expect("validate generated plan"),
             first.backend.argv
         );
+        let expected_temporary_path =
+            PathBuf::from("/fixture").join(format!(".clip.mp4.{}.tmp.mp4", first.id));
+        assert_eq!(first.output.temporary_path, expected_temporary_path);
+        let expected_temporary_argument = expected_temporary_path.display().to_string();
         assert_eq!(
             first.backend.argv,
             vec![
@@ -3138,7 +3142,7 @@ mod tests {
                 "-f",
                 "mp4",
                 "-n",
-                &format!("/fixture/.clip.mp4.{}.tmp.mp4", first.id),
+                expected_temporary_argument.as_str(),
             ]
         );
 
