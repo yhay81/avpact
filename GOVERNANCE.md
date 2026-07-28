@@ -48,3 +48,11 @@ Maintainers periodically review dependency freshness, unanswered issues,
 unsupported platforms, release reproducibility, security reports, and the
 adoption evidence in [ADOPTERS.md](ADOPTERS.md). Governance will be revised as
 the contributor base grows.
+
+## Continuity
+
+The project currently has one repository owner and one release-capable
+maintainer. [MAINTAINER_CONTINUITY.md](MAINTAINER_CONTINUITY.md) records the
+unmitigated authority risks, the fail-closed signing-key rotation policy, and a
+monthly public source-and-release recovery drill. A green drill does not
+substitute for a second maintainer or recover private repository state.
