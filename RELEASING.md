@@ -29,13 +29,18 @@ a release tag.
 6. The release workflow builds native archives, includes shell completions and
    documentation, generates a CycloneDX SBOM and `SHA256SUMS`, creates the
    GitHub release, and publishes GitHub/Sigstore build provenance and SBOM
-   attestations.
+   attestations. Each archive includes a downloadable `.intoto.jsonl`
+   provenance bundle for local verification.
 7. From a clean temporary directory, verify a downloaded archive:
 
    ```bash
    sha256sum --check SHA256SUMS
    gh attestation verify avpact-v0.2.0-linux-x86_64.tar.gz \
      --repo yhay81/avpact
+   gh attestation verify avpact-v0.2.0-linux-x86_64.tar.gz \
+     --repo yhay81/avpact \
+     --bundle avpact-v0.2.0-linux-x86_64.tar.gz.intoto.jsonl \
+     --signer-workflow yhay81/avpact/.github/workflows/release.yml
    gh attestation verify avpact-v0.2.0-linux-x86_64.tar.gz \
      --repo yhay81/avpact \
      --predicate-type https://cyclonedx.org/bom
