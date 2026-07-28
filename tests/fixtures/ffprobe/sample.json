@@ -1,0 +1,53 @@
+{
+  "streams": [
+    {
+      "index": 0,
+      "codec_name": "h264",
+      "profile": "High",
+      "codec_type": "video",
+      "width": 1920,
+      "height": 1080,
+      "pix_fmt": "yuv420p",
+      "sample_aspect_ratio": "1:1",
+      "display_aspect_ratio": "16:9",
+      "avg_frame_rate": "30000/1001",
+      "duration": "2.500000",
+      "bit_rate": "192000",
+      "disposition": {
+        "default": 1,
+        "forced": 0
+      },
+      "tags": {
+        "language": "und"
+      }
+    },
+    {
+      "index": 1,
+      "codec_name": "aac",
+      "profile": "LC",
+      "codec_type": "audio",
+      "sample_fmt": "fltp",
+      "sample_rate": "48000",
+      "channels": 2,
+      "channel_layout": "stereo",
+      "duration": "2.496000",
+      "bit_rate": "128000",
+      "disposition": {
+        "default": 1,
+        "forced": 0
+      },
+      "tags": {
+        "language": "eng"
+      }
+    }
+  ],
+  "format": {
+    "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+    "format_long_name": "QuickTime / MOV",
+    "duration": "2.500000",
+    "bit_rate": "320000",
+    "tags": {
+      "major_brand": "isom"
+    }
+  }
+}

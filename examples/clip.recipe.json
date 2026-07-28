@@ -1,0 +1,15 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "clip",
+    "input": "../input.mp4",
+    "output": "../clip.mp4",
+    "start_ms": 10000,
+    "end_ms": 30000
+  },
+  "target": "web",
+  "constraints": {
+    "overwrite": "deny",
+    "duration_tolerance_ms": 100
+  }
+}

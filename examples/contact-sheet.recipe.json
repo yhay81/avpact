@@ -1,0 +1,12 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "contact_sheet",
+    "input": "../input.mp4",
+    "output": "../sheet.jpg",
+    "interval_ms": 5000,
+    "columns": 4,
+    "rows": 3,
+    "width": 1280
+  }
+}

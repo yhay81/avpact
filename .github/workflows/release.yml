@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-x86_64
+            binary: avpact
+            archive: tar.gz
+          - os: macos-15-intel
+            platform: macos-x86_64
+            binary: avpact
+            archive: tar.gz
+          - os: macos-latest
+            platform: macos-aarch64
+            binary: avpact
+            archive: tar.gz
+          - os: windows-latest
+            platform: windows-x86_64
+            binary: avpact.exe
+            archive: zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Rust
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+      - name: Test library and CLI
+        run: cargo test --all-targets --locked
+      - name: Build release binary
+        run: cargo build --release --locked
+      - name: Stage package
+        shell: bash
+        run: |
+          package="avpact-${GITHUB_REF_NAME}-${{ matrix.platform }}"
+          mkdir -p "dist/${package}/completions"
+          cp "target/release/${{ matrix.binary }}" "dist/${package}/"
+          cp README.md CONCEPT.md ROADMAP.md CHANGELOG.md RELEASING.md SECURITY.md LICENSE "dist/${package}/"
+          target/release/${{ matrix.binary }} completions bash > "dist/${package}/completions/avpact.bash"
+          target/release/${{ matrix.binary }} completions zsh > "dist/${package}/completions/_avpact"
+          target/release/${{ matrix.binary }} completions fish > "dist/${package}/completions/avpact.fish"
+          target/release/${{ matrix.binary }} completions power-shell > "dist/${package}/completions/_avpact.ps1"
+      - name: Archive Unix package
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          package="avpact-${GITHUB_REF_NAME}-${{ matrix.platform }}"
+          tar -C dist -czf "dist/${package}.tar.gz" "${package}"
+      - name: Archive Windows package
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          $package = "avpact-$env:GITHUB_REF_NAME-${{ matrix.platform }}"
+          Compress-Archive -Path "dist/$package" -DestinationPath "dist/$package.zip"
+      - uses: actions/attest@v4
+        with:
+          subject-path: dist/*.${{ matrix.archive }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: avpact-${{ matrix.platform }}
+          path: dist/*.${{ matrix.archive }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: avpact-*
+          merge-multiple: true
+      - name: Generate SHA-256 checksums
+        run: |
+          cd artifacts
+          sha256sum ./* > SHA256SUMS
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" artifacts/* \
+            --repo "${GITHUB_REPOSITORY}" \
+            --generate-notes \
+            --verify-tag

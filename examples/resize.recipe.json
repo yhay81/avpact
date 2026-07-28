@@ -1,0 +1,12 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "resize",
+    "input": "../input.mp4",
+    "output": "../resized.mp4",
+    "width": 1280,
+    "height": 720,
+    "mode": "pad",
+    "rotation": "none"
+  }
+}
