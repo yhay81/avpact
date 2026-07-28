@@ -1,0 +1,82 @@
+name: Adoption report
+description: Share a sanitized AVPact evaluation or repeat-use report
+title: "[Adoption]: "
+labels:
+  - adoption
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping AVPact measure real-world usefulness before v1.0.
+        This issue is public. Do not include confidential media, credentials,
+        private paths, internal hosts, or unreviewed output.
+  - type: input
+    id: version
+    attributes:
+      label: AVPact version
+      description: Prefer the exact output of `avpact --version`.
+      placeholder: avpact 0.2.0
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Operating system, architecture, and relevant runtime versions.
+      placeholder: macOS 15 arm64; FFmpeg 7
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Sanitized workflow
+      description: What job did AVPact perform, and in what kind of project or automation?
+    validations:
+      required: true
+  - type: dropdown
+    id: repeat_use
+    attributes:
+      label: Usage duration
+      options:
+        - Evaluation only
+        - Repeated use for less than 30 days
+        - Repeated use for at least 30 days
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision improved
+      description: What safety, verification, release, or escalation decision did it improve?
+    validations:
+      required: true
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Limitations or failures
+      description: Include false refusals, false confidence, missing capability, or confusing behavior. Write "None observed" if applicable.
+    validations:
+      required: true
+  - type: input
+    id: evidence
+    attributes:
+      label: Public evidence
+      description: Optional link to a public integration, workflow, or sanitized result.
+  - type: dropdown
+    id: listing_permission
+    attributes:
+      label: Listing permission
+      description: May maintainers summarize this report in ADOPTERS.md or release notes?
+      options:
+        - Yes, with the public name given here
+        - Yes, only as anonymized or aggregate evidence
+        - No, feedback only
+    validations:
+      required: true
+  - type: checkboxes
+    id: public_safety
+    attributes:
+      label: Public-data confirmation
+      options:
+        - label: I reviewed this report and removed secrets, confidential data, private paths, and unsafe artifacts.
+          required: true
