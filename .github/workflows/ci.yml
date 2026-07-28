@@ -26,6 +26,9 @@ jobs:
         run: cargo clippy --all-targets --locked -- -D warnings
       - name: Package manifest
         run: cargo package --locked --allow-dirty
+      - name: Benchmark harness smoke
+        shell: bash
+        run: bash -n benchmarks/run.sh
       - name: JSON fixtures
         run: |
           python3 - <<'PY'

@@ -18,6 +18,9 @@ semantic versioning.
 - Added a digest-pinned v0.1 recipe, plan, and receipt compatibility corpus
   with exact round-trip checks, full semantic validation, and nine declared
   fail-closed mutation cases.
+- Added a reproducible synthetic-media performance harness covering contracts,
+  inspect, plan, apply, progress, receipt, verification, and cleanup with raw
+  runner and FFmpeg identity retained for 90 days.
 
 ## [0.1.0] - 2026-07-28
 
