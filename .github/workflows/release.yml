@@ -54,6 +54,7 @@ jobs:
           cp README.md CONCEPT.md ROADMAP.md CHANGELOG.md RELEASING.md SECURITY.md \
             CONTRIBUTING.md CODE_OF_CONDUCT.md GOVERNANCE.md SUPPORT.md \
             ADOPTERS.md LICENSE "dist/${package}/"
+          cp -R benchmarks "dist/${package}/"
           target/release/${{ matrix.binary }} completions bash > "dist/${package}/completions/avpact.bash"
           target/release/${{ matrix.binary }} completions zsh > "dist/${package}/completions/_avpact"
           target/release/${{ matrix.binary }} completions fish > "dist/${package}/completions/avpact.fish"

@@ -93,6 +93,8 @@ coverage, fixture coverage, and documented unsupported cases.
 - [x] Diverse synthetic media fixture corpus with licensing metadata.
 - [x] Resource, temporary-disk, runtime, and output-size budgets.
 - [x] Native release archives, shell completions, checksums, and provenance.
+- [x] Reproducible end-to-end media workflow and contract performance baseline
+  with raw hosted-runner measurements.
 
 ## v1.0 quality criteria
 

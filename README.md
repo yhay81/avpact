@@ -111,6 +111,12 @@ accepted v0.1 recipes, plans, and receipts. CI checks exact round trips,
 semantic validation, fixture digests, and fail-closed behavior for declared
 tampering cases.
 
+The versioned [performance harness](benchmarks/README.md) publishes raw
+contract, inspect, plan, apply, progress, receipt, verification, resource, and
+cleanup baselines over project-generated synthetic media. Initial measurements
+are observation-only until the documented p95 and component-isolation policy
+is established.
+
 ## Release integrity
 
 CI tests Linux, macOS, Windows, and the declared Rust 1.85 MSRV. Tagged releases
