@@ -1,0 +1,222 @@
+{
+  "schema_version": "avpact.plan/v0.1",
+  "id": "plan_71158efb603805455e1e9731247ab037",
+  "recipe_digest": "73e7d39a03fdc59ad27d665bf58b95252f8f4446a050c22021d867a53c304424",
+  "constraints_digest": "8664d521264a2a127c6b3c4c484dbf739a674850f11c699451e707986dc350c5",
+  "inputs": [
+    {
+      "schema_version": "avpact.inspection/v0.1",
+      "source": {
+        "path": "source.mp4",
+        "size_bytes": 10,
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "backend": {
+        "name": "ffprobe",
+        "version": "ffprobe version fixture"
+      },
+      "format": {
+        "name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "long_name": "QuickTime / MOV",
+        "duration_ms": 2000,
+        "bit_rate_bps": 1000000
+      },
+      "streams": [
+        {
+          "index": 0,
+          "kind": "video",
+          "codec": "h264",
+          "profile": "High",
+          "duration_ms": 2000,
+          "bit_rate_bps": 800000,
+          "video": {
+            "width": 1920,
+            "height": 1080,
+            "pixel_format": "yuv420p",
+            "average_frame_rate": "30/1",
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "16:9"
+          },
+          "disposition": {
+            "default": 1
+          }
+        },
+        {
+          "index": 1,
+          "kind": "audio",
+          "codec": "aac",
+          "profile": "LC",
+          "duration_ms": 2000,
+          "bit_rate_bps": 128000,
+          "audio": {
+            "sample_rate_hz": 48000,
+            "channels": 2,
+            "channel_layout": "stereo",
+            "sample_format": "fltp"
+          },
+          "disposition": {
+            "default": 1
+          }
+        }
+      ]
+    }
+  ],
+  "output": {
+    "path": "clip.mp4",
+    "temporary_path": ".clip.mp4.plan_71158efb603805455e1e9731247ab037.tmp.mp4",
+    "overwrite": "deny",
+    "atomic_publish": true
+  },
+  "operation": {
+    "type": "clip",
+    "start_ms": 250,
+    "end_ms": 1250,
+    "duration_ms": 1000,
+    "accuracy": "exact_transcode"
+  },
+  "selected_streams": [
+    {
+      "source_index": 0,
+      "stream_index": 0,
+      "kind": "video",
+      "reason": "default video stream",
+      "output_codec": "h264/libx264"
+    },
+    {
+      "source_index": 0,
+      "stream_index": 1,
+      "kind": "audio",
+      "reason": "default audio stream",
+      "output_codec": "aac"
+    }
+  ],
+  "backend": {
+    "name": "ffmpeg",
+    "version": "ffmpeg version fixture",
+    "configuration": "--enable-fixture",
+    "library_versions": {
+      "libavcodec": "1.2.3 / 1.2.3"
+    },
+    "argv": [
+      "-hide_banner",
+      "-nostdin",
+      "-loglevel",
+      "error",
+      "-nostats",
+      "-stats_period",
+      "0.5",
+      "-progress",
+      "pipe:1",
+      "-i",
+      "source.mp4",
+      "-ss",
+      "0.250",
+      "-t",
+      "1.000",
+      "-map",
+      "0:0",
+      "-map",
+      "0:1",
+      "-map_metadata",
+      "-1",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "medium",
+      "-crf",
+      "23",
+      "-pix_fmt",
+      "yuv420p",
+      "-vf",
+      "setpts=PTS-STARTPTS,setsar=1",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "128k",
+      "-af",
+      "asetpts=PTS-STARTPTS",
+      "-movflags",
+      "+faststart",
+      "-f",
+      "mp4",
+      "-n",
+      ".clip.mp4.plan_71158efb603805455e1e9731247ab037.tmp.mp4"
+    ]
+  },
+  "expected": {
+    "container": "mov,mp4,m4a,3gp,3g2,mj2",
+    "duration_ms": 1000,
+    "duration_tolerance_ms": 100,
+    "video": {
+      "codec": "h264",
+      "width": 1920,
+      "height": 1080,
+      "sample_aspect_ratio": "1:1",
+      "average_frame_rate": "30/1"
+    },
+    "audio": {
+      "codec": "aac",
+      "channels": 2,
+      "loudness": null
+    }
+  },
+  "verification_checks": [
+    {
+      "type": "parseable"
+    },
+    {
+      "type": "container",
+      "name": "mov,mp4,m4a,3gp,3g2,mj2"
+    },
+    {
+      "type": "duration",
+      "expected_ms": 1000,
+      "tolerance_ms": 100
+    },
+    {
+      "type": "video",
+      "codec": "h264",
+      "width": 1920,
+      "height": 1080,
+      "sample_aspect_ratio": "1:1",
+      "average_frame_rate": "30/1"
+    },
+    {
+      "type": "audio",
+      "codec": "aac",
+      "channels": 2
+    },
+    {
+      "type": "stream_layout",
+      "video_streams": 1,
+      "audio_streams": 1,
+      "subtitle_streams": 0,
+      "other_streams": 0
+    },
+    {
+      "type": "output_size",
+      "max_bytes": 10737418240
+    },
+    {
+      "type": "distinct_from_inputs"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "lossy_encoding",
+      "message": "selected streams are re-encoded with lossy target codecs; byte and perceptual identity are not preserved"
+    },
+    {
+      "code": "metadata_removed",
+      "message": "input metadata is not copied to the web target"
+    }
+  ],
+  "resources": {
+    "class": "light",
+    "estimated_output_bytes": 336500,
+    "estimated_temporary_bytes": 403800,
+    "max_output_bytes": 10737418240,
+    "max_temporary_bytes": 12884901888,
+    "max_runtime_ms": 14400000
+  }
+}

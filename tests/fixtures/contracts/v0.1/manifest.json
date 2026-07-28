@@ -1,0 +1,116 @@
+{
+  "schema_version": "avpact.contract-corpus/v0.1",
+  "license": "MIT",
+  "accepted": [
+    {
+      "document": "recipe",
+      "path": "recipe.clip.json",
+      "schema_version": "avpact.recipe/v0.1",
+      "sha256": "55fee7d1aba9e13d572cb0ce01afc24e8e1d84d06226adcc3d001af92a816925"
+    },
+    {
+      "document": "plan",
+      "path": "plan.clip.json",
+      "schema_version": "avpact.plan/v0.1",
+      "sha256": "32cfa71ce19eeebc13decbf4395a7e05b7187790728d3bb8ea8fa91a5bba2a16"
+    },
+    {
+      "document": "receipt",
+      "path": "receipt.clip.json",
+      "schema_version": "avpact.receipt/v0.1",
+      "sha256": "c29eda885690d1bc489b322ee23ca7f520b79889ac85e6e517f2866167d40c2c"
+    }
+  ],
+  "rejections": [
+    {
+      "id": "recipe_unknown_field",
+      "document": "recipe",
+      "base": "recipe.clip.json",
+      "operation": "add",
+      "pointer": "/unexpected",
+      "value": true,
+      "expected_error_code": "recipe_invalid",
+      "reason": "unknown recipe fields must fail closed"
+    },
+    {
+      "id": "recipe_unsupported_version",
+      "document": "recipe",
+      "base": "recipe.clip.json",
+      "operation": "replace",
+      "pointer": "/schema_version",
+      "value": "avpact.recipe/v9.9",
+      "expected_error_code": "recipe_invalid",
+      "reason": "unsupported recipe versions require an explicit reader or migration"
+    },
+    {
+      "id": "plan_tampered_backend_argv",
+      "document": "plan",
+      "base": "plan.clip.json",
+      "operation": "replace",
+      "pointer": "/backend/argv/0",
+      "value": "-tampered",
+      "expected_error_code": "plan_invalid",
+      "reason": "typed plan state must bind the executable argument vector"
+    },
+    {
+      "id": "plan_unsupported_version",
+      "document": "plan",
+      "base": "plan.clip.json",
+      "operation": "replace",
+      "pointer": "/schema_version",
+      "value": "avpact.plan/v9.9",
+      "expected_error_code": "plan_invalid",
+      "reason": "unsupported plan versions must not execute"
+    },
+    {
+      "id": "plan_unknown_field",
+      "document": "plan",
+      "base": "plan.clip.json",
+      "operation": "add",
+      "pointer": "/unexpected",
+      "value": true,
+      "expected_error_code": "plan_invalid",
+      "reason": "unknown plan fields must not be ignored"
+    },
+    {
+      "id": "receipt_tampered_output_digest",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/verification/output/source/sha256",
+      "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "expected_error_code": "receipt_invalid",
+      "reason": "receipt identity must bind the verified output digest"
+    },
+    {
+      "id": "receipt_failed_check",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/verification/checks/0/passed",
+      "value": false,
+      "expected_error_code": "receipt_invalid",
+      "reason": "successful receipts cannot contain failed verification checks"
+    },
+    {
+      "id": "receipt_unsupported_publication",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/publication/method",
+      "value": "copy",
+      "expected_error_code": "receipt_invalid",
+      "reason": "unrecognized publication guarantees must not be accepted"
+    },
+    {
+      "id": "receipt_unknown_field",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "add",
+      "pointer": "/unexpected",
+      "value": true,
+      "expected_error_code": "receipt_invalid",
+      "reason": "unknown receipt fields must fail closed"
+    }
+  ]
+}

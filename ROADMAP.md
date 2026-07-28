@@ -111,6 +111,12 @@ does not substitute for these gates.
 - Backend capability differences never cause a silent operation, codec, or
   accuracy downgrade; the plan records every authorized fallback.
 
+Current evidence: the checked-in v0.1 contract corpus freezes a valid recipe,
+semantically valid plan, and validated receipt, plus declared fail-closed
+mutations. It verifies exact serialization and stable structured error codes on
+all CI operating systems. A second released minor version and its migration or
+no-migration evidence are still required.
+
 ### Correctness and security
 
 - The published adversarial corpus has 100% detection of input identity
