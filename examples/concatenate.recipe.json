@@ -1,0 +1,11 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "concatenate",
+    "inputs": [
+      "../part-a.mp4",
+      "../part-b.mp4"
+    ],
+    "output": "../joined.mp4"
+  }
+}

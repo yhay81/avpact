@@ -1,0 +1,10 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "normalize_audio",
+    "input": "../input.mp4",
+    "output": "../normalized.m4a",
+    "target_lufs": -14,
+    "tolerance_lu_x100": 100
+  }
+}

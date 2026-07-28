@@ -1,0 +1,8 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "transcode",
+    "input": "../input.mov",
+    "output": "../web.mp4"
+  }
+}

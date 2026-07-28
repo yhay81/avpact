@@ -1,0 +1,9 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "burn_subtitles",
+    "input": "../input.mp4",
+    "subtitles": "../captions.srt",
+    "output": "../subtitled.mp4"
+  }
+}

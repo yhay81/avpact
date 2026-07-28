@@ -1,0 +1,63 @@
+name: Bug report
+description: Report reproducible incorrect or unsafe behavior.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: checkboxes
+    attributes:
+      label: Safety check
+      options:
+        - label: This report does not disclose a vulnerability or sensitive media.
+          required: true
+        - label: I searched existing issues for the same behavior.
+          required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and why is it incorrect?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AVPact version
+      placeholder: avpact 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Operating system and architecture
+      placeholder: macOS 15 aarch64
+    validations:
+      required: true
+  - type: input
+    id: ffmpeg
+    attributes:
+      label: FFmpeg and FFprobe versions
+      placeholder: FFmpeg 8.1.2 / FFprobe 8.1.2
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Use generated media and redact local paths and metadata.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and structured error
+      description: Paste bounded, redacted output. Do not attach private media.
+    validations:
+      required: true

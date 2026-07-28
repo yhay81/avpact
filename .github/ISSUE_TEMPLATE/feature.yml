@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a bounded workflow or operation.
+title: "feature: "
+labels:
+  - enhancement
+body:
+  - type: checkboxes
+    attributes:
+      label: Preparation
+      options:
+        - label: I searched existing issues and reviewed the documented non-goals.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Describe the workflow problem without prescribing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example workflow
+      description: Show representative inputs, desired intent, and expected output properties.
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Safety and compatibility boundary
+      description: What must remain bounded, inspectable, or portable?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: How is this handled with AVPact or FFmpeg today?

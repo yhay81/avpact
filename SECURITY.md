@@ -1,0 +1,58 @@
+# Security policy
+
+## Supported versions
+
+AVPact is pre-1.0. Security fixes are applied to the latest tagged release.
+Older pre-1.0 releases are not supported after a newer release is available.
+
+| Version | Supported |
+| --- | --- |
+| Latest tagged release | Yes |
+| Older pre-1.0 releases | No |
+| Unreleased development builds | Best effort |
+
+## Reporting a vulnerability
+
+Use
+[GitHub private vulnerability reporting](https://github.com/yhay81/avpact/security/advisories/new).
+Please do not open a public issue for command execution, path handling,
+temporary-file, overwrite, cancellation, resource-limit, receipt-integrity, or
+media-parser vulnerabilities.
+
+Include the AVPact version, operating system, FFmpeg/FFprobe version, recipe or
+plan with sensitive paths redacted, observed behavior, and a minimal
+reproduction when possible.
+
+You should receive an acknowledgement within 7 days. The maintainer will
+validate the report, agree on disclosure timing, prepare a fix and regression
+test, and publish a GitHub Security Advisory when appropriate. Response targets
+are goals rather than a service-level agreement for this volunteer project.
+
+Do not attach private media unless the maintainer explicitly requests a secure
+transfer. Synthetic reproductions are strongly preferred.
+
+## Security boundaries
+
+- AVPact invokes FFmpeg and FFprobe with argument arrays, never shell command
+  strings.
+- A plan is executable authority, not a cryptographic signature from a trusted
+  author. Apply validates that its argv can be reconstructed from the typed
+  plan before execution.
+- Inputs and outputs are local files. Network protocols and DRM circumvention
+  are out of scope.
+- Codec and filter vulnerabilities in the selected FFmpeg build remain part of
+  the trusted computing base.
+- Release archives are produced only by the tagged GitHub Actions workflow.
+  Consumers should verify checksums and provenance as described in
+  [RELEASING.md](RELEASING.md).
+
+## Dependency and disclosure policy
+
+Dependabot monitors Rust and GitHub Actions dependencies. CI audits `Cargo.lock`
+against RustSec advisories. A dependency advisory is evaluated for reachability
+and impact; an available compatible security update is preferred over an
+indefinite advisory exception.
+
+Public disclosure normally follows a fixed release. If a report affects
+FFmpeg, GitHub Actions, or another upstream project, AVPact will coordinate with
+that project before disclosure when practical.

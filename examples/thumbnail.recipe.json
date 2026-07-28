@@ -1,0 +1,10 @@
+{
+  "schema_version": "avpact.recipe/v0.1",
+  "operation": {
+    "type": "thumbnail",
+    "input": "../input.mp4",
+    "output": "../thumbnail.jpg",
+    "at_ms": 10000,
+    "width": 640
+  }
+}

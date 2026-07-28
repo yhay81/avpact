@@ -1,0 +1,38 @@
+{
+  "schema_version": "avpact.fixture-corpus/v0.1",
+  "license": "CC0-1.0",
+  "generation": "runtime",
+  "source": "FFmpeg lavfi synthetic sources and project-authored text",
+  "fixtures": [
+    {
+      "id": "av_mpeg4_aac_mp4",
+      "media_type": "video/mp4",
+      "coverage": ["video", "audio", "short-duration", "non-square-pixels-normalized"]
+    },
+    {
+      "id": "video_only_mpeg4_mp4",
+      "media_type": "video/mp4",
+      "coverage": ["video", "no-audio"]
+    },
+    {
+      "id": "audio_only_pcm_wav",
+      "media_type": "audio/wav",
+      "coverage": ["audio", "pcm", "no-video"]
+    },
+    {
+      "id": "single_mjpeg_jpeg",
+      "media_type": "image/jpeg",
+      "coverage": ["still-image", "mjpeg"]
+    },
+    {
+      "id": "subtitle_srt",
+      "media_type": "application/x-subrip",
+      "coverage": ["subtitle", "utf-8"]
+    },
+    {
+      "id": "mismatched_video",
+      "media_type": "video/mp4",
+      "coverage": ["incompatible-dimensions", "negative-test"]
+    }
+  ]
+}
