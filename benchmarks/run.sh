@@ -207,9 +207,11 @@ jq -n \
           index,
           kind,
           codec,
-          width,
-          height,
-          channels
+          width: (.video.width // null),
+          height: (.video.height // null),
+          average_frame_rate: (.video.average_frame_rate // null),
+          sample_rate_hz: (.audio.sample_rate_hz // null),
+          channels: (.audio.channels // null)
         }
       ]
     },
