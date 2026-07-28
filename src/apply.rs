@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::error::{AvpactError, bounded_diagnostic};
+use crate::hex::encode_lower;
 use crate::inspect;
 use crate::model::{InspectionReport, StreamKind};
 use crate::plan::{self, Plan, PlanWarning, PlannedBackend};
@@ -1233,7 +1234,7 @@ fn receipt_id(plan_id: &str, output_sha256: &str, completed_unix_ms: u64) -> Str
     hasher.update(output_sha256.as_bytes());
     hasher.update([0]);
     hasher.update(completed_unix_ms.to_le_bytes());
-    format!("rcpt_{:x}", hasher.finalize())[..37].to_owned()
+    format!("rcpt_{}", encode_lower(hasher.finalize()))[..37].to_owned()
 }
 
 fn unix_time_ms() -> u64 {

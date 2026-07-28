@@ -1,6 +1,7 @@
 pub mod apply;
 pub mod capability;
 pub mod error;
+mod hex;
 pub mod inspect;
 pub mod model;
 pub mod plan;

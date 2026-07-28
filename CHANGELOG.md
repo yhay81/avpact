@@ -6,6 +6,11 @@ semantic versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `sha2` to 0.11 and centralized lowercase hexadecimal encoding while
+  preserving all existing digest and receipt identifier contracts.
+
 ## [0.1.0] - 2026-07-28
 
 ### Added

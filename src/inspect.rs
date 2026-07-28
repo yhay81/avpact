@@ -6,6 +6,7 @@ use std::process::Command;
 use sha2::{Digest, Sha256};
 
 use crate::error::{AvpactError, bounded_diagnostic};
+use crate::hex::encode_lower;
 use crate::model::{
     AudioSummary, BackendIdentity, FormatSummary, InspectionReport, ProbeDocument, ProbeStream,
     SourceIdentity, StreamKind, StreamSummary, VideoSummary,
@@ -108,7 +109,7 @@ fn hash_file(path: &Path) -> Result<String, AvpactError> {
         hasher.update(&buffer[..count]);
     }
 
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(encode_lower(hasher.finalize()))
 }
 
 pub(crate) fn probe_version(ffprobe: &Path) -> Result<String, AvpactError> {

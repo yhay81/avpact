@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::error::{AvpactError, bounded_diagnostic};
+use crate::hex::encode_lower;
 use crate::inspect;
 use crate::model::{InspectionReport, SourceIdentity, StreamKind, StreamSummary};
 
@@ -2879,7 +2880,7 @@ fn is_audio(stream: &StreamSummary) -> bool {
 
 fn digest_json<T: Serialize>(value: &T) -> Result<String, AvpactError> {
     let bytes = serde_json::to_vec(value)?;
-    Ok(format!("{:x}", Sha256::digest(bytes)))
+    Ok(encode_lower(Sha256::digest(bytes)))
 }
 
 fn read_bounded_document(path: &Path, max_bytes: u64) -> std::io::Result<Vec<u8>> {
