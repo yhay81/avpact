@@ -36,10 +36,11 @@ until coordinated disclosure is safe.
 
 ## Changes and releases
 
-At least one maintainer approval and all required checks are needed before a
-pull request is merged. Maintainers do not bypass failing checks for a release.
-Release requirements are defined in [RELEASING.md](RELEASING.md), and supported
-versions are defined in [SECURITY.md](SECURITY.md).
+Pull requests from contributors need at least one maintainer approval.
+Maintainer-authored pull requests need a recorded self-review and all required
+checks. Maintainers do not bypass failing checks for a release. Release
+requirements are defined in [RELEASING.md](RELEASING.md), and supported versions
+are defined in [SECURITY.md](SECURITY.md).
 
 ## Project health
 
