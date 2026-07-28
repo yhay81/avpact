@@ -94,6 +94,77 @@ coverage, fixture coverage, and documented unsupported cases.
 - [x] Resource, temporary-disk, runtime, and output-size budgets.
 - [x] Native release archives, shell completions, checksums, and provenance.
 
+## v1.0 quality criteria
+
+AVPact reaches v1.0 only when every gate below is supported by published,
+reproducible evidence. A larger operation list, download count, or star count
+does not substitute for these gates.
+
+### Product and compatibility
+
+- The CLI, recipe, plan, receipt, inspection, capabilities, and error contracts
+  remain compatible across at least two released pre-1.0 minor versions.
+- Golden documents from every supported contract version are accepted by the
+  current reader or have a tested migration command and migration guide.
+- Every supported operation has a documented codec, stream-selection,
+  overwrite, temporary-file, and verification policy.
+- Backend capability differences never cause a silent operation, codec, or
+  accuracy downgrade; the plan records every authorized fallback.
+
+### Correctness and security
+
+- The published adversarial corpus has 100% detection of input identity
+  changes, receipt mutations, output-verification failures, unsafe
+  input/output aliasing, and attempts to overwrite an existing destination.
+- Every forced-failure fixture leaves the requested destination byte-identical
+  or absent, and leaves no unbounded temporary artifact.
+- Each operation meets its published duration, geometry, stream, loudness, and
+  content-verification tolerances across the supported FFmpeg matrix.
+- An independent security review covers path and symlink handling, temporary
+  publication, cancellation races, process-tree cleanup, backend argument
+  construction, receipt integrity, and diagnostic redaction; all critical and
+  high findings are resolved.
+- No known critical or high-severity vulnerability is open at release time.
+
+### Performance and bounds
+
+- Planning and contract generation remain below 250 ms p95 on the published
+  fixture corpus, excluding input hashing and FFprobe/FFmpeg time.
+- AVPact parent-process peak memory remains below 256 MiB for every published
+  bounded fixture; backend process memory is measured and reported separately.
+- Backend diagnostics, progress events, receipt size, runtime, output size, and
+  temporary-disk use never exceed their configured bounds without an explicit
+  structured failure.
+- Benchmark methodology, runner image, FFmpeg build, raw measurements, and
+  regression thresholds are versioned with the repository.
+
+### Delivery and maintenance
+
+- Required CI stays green on Linux, macOS, and Windows for 30 consecutive days
+  before the v1.0 tag.
+- Releases originate only from protected `main` and signed annotated tags; all
+  native archives have verified checksums, GitHub-hosted provenance, and a
+  CycloneDX SBOM attestation.
+- The release runbook is successfully exercised by two maintainers, or
+  governance records the single-maintainer continuity risk and a tested
+  recovery procedure.
+- Security reports are acknowledged within 3 business days and receive an
+  initial assessment within 7.
+
+### Adoption evidence
+
+- At least three independent users or teams are recorded in
+  [ADOPTERS.md](ADOPTERS.md) with a real media workflow and an outcome that
+  verification or a safe refusal improved.
+- At least two adopters report repeat use separated by 30 days.
+- At least one public integration demonstrates plan review plus verified apply,
+  rather than installation or inspection alone.
+- At least one non-maintainer issue, discussion, documentation change, fixture,
+  test, or code contribution is resolved and credited.
+
+Maintainer-authored fixtures, automated downloads, stars, and synthetic
+accounts cannot satisfy adoption gates.
+
 ## Current environment note
 
 The initial development environment has FFmpeg and FFprobe 8.1.2. Unit tests
