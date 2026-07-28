@@ -6,6 +6,14 @@ semantic versioning.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-29
+
+### Compatibility
+
+- Preserved the public v0.1 CLI and machine contracts. The v0.2 reader accepts
+  the digest-pinned v0.1 recipe, plan, and receipt corpus byte-for-byte; no
+  migration is required.
+
 ### Changed
 
 - Upgraded `sha2` to 0.11 and centralized lowercase hexadecimal encoding while
@@ -45,5 +53,6 @@ semantic versioning.
 - Automated RustSec audits and grouped Dependabot updates for Cargo and GitHub
   Actions dependencies.
 
-[Unreleased]: https://github.com/yhay81/avpact/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/yhay81/avpact/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/yhay81/avpact/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/yhay81/avpact/releases/tag/v0.1.0

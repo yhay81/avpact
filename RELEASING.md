@@ -22,8 +22,8 @@ a release tag.
 5. Create and push a signed annotated tag:
 
    ```bash
-   git tag -s v0.1.0 -m "AVPact 0.1.0"
-   git push origin v0.1.0
+   git tag -s v0.2.0 -m "AVPact 0.2.0"
+   git push origin v0.2.0
    ```
 
 6. The release workflow builds native archives, includes shell completions and
@@ -34,9 +34,9 @@ a release tag.
 
    ```bash
    sha256sum --check SHA256SUMS
-   gh attestation verify avpact-v0.1.0-linux-x86_64.tar.gz \
+   gh attestation verify avpact-v0.2.0-linux-x86_64.tar.gz \
      --repo yhay81/avpact
-   gh attestation verify avpact-v0.1.0-linux-x86_64.tar.gz \
+   gh attestation verify avpact-v0.2.0-linux-x86_64.tar.gz \
      --repo yhay81/avpact \
      --predicate-type https://cyclonedx.org/bom
    ```
