@@ -27,6 +27,7 @@ include = [
     "/GOVERNANCE.md",
     "/SUPPORT.md",
     "/ADOPTERS.md",
+    "/FUZZING.md",
     "/LICENSE",
 ]
 

@@ -1,0 +1,19 @@
+[package]
+name = "avpact-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+avpact = { path = ".." }
+libfuzzer-sys = "=0.4.13"
+
+[[bin]]
+name = "recipe_document"
+path = "fuzz_targets/recipe_document.rs"
+test = false
+doc = false
+bench = false
