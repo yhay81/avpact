@@ -5,6 +5,11 @@ downloads as proof of use.
 
 No external adopters have been recorded yet.
 
+The shortest reporting path is the public
+[adoption report form](https://github.com/yhay81/avpact/issues/new?template=adoption_report.yml).
+Use a pull request instead when the evidence should be committed directly to
+this file.
+
 If AVPact is part of a reproducible workflow, open a pull request adding an
 entry with:
 
