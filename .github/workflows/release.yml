@@ -5,9 +5,11 @@ on:
     tags: ["v*"]
 
 permissions:
+  actions: read
   contents: write
   id-token: write
   attestations: write
+  artifact-metadata: write
 
 jobs:
   build:
@@ -33,7 +35,7 @@ jobs:
             archive: zip
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install Rust
         shell: bash
         run: |
@@ -49,7 +51,9 @@ jobs:
           package="avpact-${GITHUB_REF_NAME}-${{ matrix.platform }}"
           mkdir -p "dist/${package}/completions"
           cp "target/release/${{ matrix.binary }}" "dist/${package}/"
-          cp README.md CONCEPT.md ROADMAP.md CHANGELOG.md RELEASING.md SECURITY.md LICENSE "dist/${package}/"
+          cp README.md CONCEPT.md ROADMAP.md CHANGELOG.md RELEASING.md SECURITY.md \
+            CONTRIBUTING.md CODE_OF_CONDUCT.md GOVERNANCE.md SUPPORT.md \
+            ADOPTERS.md LICENSE "dist/${package}/"
           target/release/${{ matrix.binary }} completions bash > "dist/${package}/completions/avpact.bash"
           target/release/${{ matrix.binary }} completions zsh > "dist/${package}/completions/_avpact"
           target/release/${{ matrix.binary }} completions fish > "dist/${package}/completions/avpact.fish"
@@ -66,10 +70,10 @@ jobs:
         run: |
           $package = "avpact-$env:GITHUB_REF_NAME-${{ matrix.platform }}"
           Compress-Archive -Path "dist/$package" -DestinationPath "dist/$package.zip"
-      - uses: actions/attest@v4
+      - uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4
         with:
           subject-path: dist/*.${{ matrix.archive }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: avpact-${{ matrix.platform }}
           path: dist/*.${{ matrix.archive }}
@@ -78,15 +82,35 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: artifacts
           pattern: avpact-*
           merge-multiple: true
+      - name: Install Rust and SBOM generator
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          cargo install cargo-cyclonedx --version 0.5.9 --locked
+      - name: Generate CycloneDX SBOM
+        run: |
+          cargo cyclonedx --format json --describe binaries --target all \
+            --spec-version 1.5
+          test -s avpact_bin.cdx.json
+          mv avpact_bin.cdx.json \
+            "artifacts/avpact-${GITHUB_REF_NAME}.cdx.json"
       - name: Generate SHA-256 checksums
         run: |
           cd artifacts
-          sha256sum ./* > SHA256SUMS
+          sha256sum ./*.tar.gz ./*.zip ./*.cdx.json > SHA256SUMS
+      - name: Attest release SBOM
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4
+        with:
+          subject-path: |
+            artifacts/*.tar.gz
+            artifacts/*.zip
+          sbom-path: artifacts/avpact-${{ github.ref_name }}.cdx.json
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

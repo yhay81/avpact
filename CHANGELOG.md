@@ -23,7 +23,11 @@ semantic versioning.
   verification, no-clobber atomic publication, and receipt-failure rollback.
 - Durable local receipt store and `receipt show`.
 - Linux, macOS, and Windows CI plus release archives, checksums, completions,
-  and GitHub build provenance attestations.
+  CycloneDX SBOMs, and GitHub build provenance and SBOM attestations.
+- Contributor, governance, support, conduct, security-response, and adoption
+  policies with structured issue and pull-request templates.
+- Automated RustSec audits and grouped Dependabot updates for Cargo and GitHub
+  Actions dependencies.
 
 [Unreleased]: https://github.com/yhay81/avpact/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/yhay81/avpact/releases/tag/v0.1.0

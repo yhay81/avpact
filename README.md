@@ -109,8 +109,19 @@ to retrieve the full JSON Schema for a document.
 
 CI tests Linux, macOS, Windows, and the declared Rust 1.85 MSRV. Tagged releases
 contain native archives, documentation, shell completions, SHA-256 checksums,
-and GitHub/Sigstore build provenance attestations. See
+CycloneDX SBOMs, and GitHub/Sigstore build provenance and SBOM attestations. See
 [RELEASING.md](RELEASING.md) and [SECURITY.md](SECURITY.md).
+
+## Community
+
+Use [GitHub Discussions](https://github.com/yhay81/avpact/discussions) for
+questions and workflow exploration, and the structured issue forms for
+reproducible bugs and feature proposals. See [CONTRIBUTING.md](CONTRIBUTING.md),
+[SUPPORT.md](SUPPORT.md), [GOVERNANCE.md](GOVERNANCE.md), and the
+[Code of Conduct](CODE_OF_CONDUCT.md) before participating. Security-sensitive
+behavior must be reported privately.
+
+Verified, opt-in usage is recorded in [ADOPTERS.md](ADOPTERS.md).
 
 ## License
 

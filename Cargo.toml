@@ -22,6 +22,11 @@ include = [
     "/CHANGELOG.md",
     "/SECURITY.md",
     "/RELEASING.md",
+    "/CONTRIBUTING.md",
+    "/CODE_OF_CONDUCT.md",
+    "/GOVERNANCE.md",
+    "/SUPPORT.md",
+    "/ADOPTERS.md",
     "/LICENSE",
 ]
 

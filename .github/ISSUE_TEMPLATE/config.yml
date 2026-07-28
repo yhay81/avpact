@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Usage and design questions
+    url: https://github.com/yhay81/avpact/discussions
+    about: Ask for help or explore a workflow without filing a bug.
+  - name: Confidential security report
+    url: https://github.com/yhay81/avpact/security/advisories/new
+    about: Report vulnerabilities and sensitive behavior privately.

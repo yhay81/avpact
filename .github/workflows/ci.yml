@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "17 4 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -13,7 +15,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install Rust quality components
         run: |
           rustup toolchain install stable --profile minimal --component rustfmt,clippy
@@ -29,10 +31,23 @@ jobs:
           python3 -m json.tool tests/fixtures/METADATA.json >/dev/null
           python3 -m json.tool tests/fixtures/ffprobe/sample.json >/dev/null
 
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      issues: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Audit Rust dependencies
+        uses: rustsec/audit-check@69366f33c96575abad1ee0dba8212993eecbe998 # v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   msrv:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install declared MSRV
         run: rustup toolchain install 1.85.0 --profile minimal
       - name: Check with Rust 1.85
@@ -45,7 +60,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install Rust
         shell: bash
         run: |
@@ -84,7 +99,7 @@ jobs:
           if not operation["supported"]:
               raise SystemExit(f"Linux FFmpeg lacks required subtitle capability: {operation['missing']}")
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: capabilities-${{ runner.os }}
           path: capabilities-${{ runner.os }}.json
