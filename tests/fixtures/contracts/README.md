@@ -19,4 +19,5 @@ When a contract intentionally changes:
 
 The integration test verifies fixture SHA-256 digests, exact pretty-JSON
 round-trips, semantic plan and receipt validation, and the declared
-fail-closed mutations.
+fail-closed mutations. `.gitattributes` forces LF bytes for this directory so
+the byte-level digests are identical on Windows, macOS, and Linux.
