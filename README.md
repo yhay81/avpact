@@ -105,6 +105,12 @@ Use `avpact schema --document recipe --format json` (or `plan`,
 `inspection`, `progress`, `verification`, `receipt`, `capability`, and `error`)
 to retrieve the full JSON Schema for a document.
 
+AVPact's checked-in
+[contract compatibility corpus](tests/fixtures/contracts/README.md) freezes
+accepted v0.1 recipes, plans, and receipts. CI checks exact round trips,
+semantic validation, fixture digests, and fail-closed behavior for declared
+tampering cases.
+
 ## Release integrity
 
 CI tests Linux, macOS, Windows, and the declared Rust 1.85 MSRV. Tagged releases

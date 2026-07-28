@@ -13,6 +13,12 @@ semantic versioning.
 - Defined measurable v1.0 compatibility, correctness, security, performance,
   delivery, maintenance, contribution, and repeat-adoption gates.
 
+### Added
+
+- Added a digest-pinned v0.1 recipe, plan, and receipt compatibility corpus
+  with exact round-trip checks, full semantic validation, and nine declared
+  fail-closed mutation cases.
+
 ## [0.1.0] - 2026-07-28
 
 ### Added

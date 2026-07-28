@@ -28,8 +28,18 @@ jobs:
         run: cargo package --locked --allow-dirty
       - name: JSON fixtures
         run: |
-          python3 -m json.tool tests/fixtures/METADATA.json >/dev/null
-          python3 -m json.tool tests/fixtures/ffprobe/sample.json >/dev/null
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          fixtures = sorted(Path("tests/fixtures").rglob("*.json"))
+          if not fixtures:
+              raise SystemExit("no JSON fixtures found")
+          for fixture in fixtures:
+              with fixture.open(encoding="utf-8") as handle:
+                  json.load(handle)
+          print(f"validated {len(fixtures)} JSON fixtures")
+          PY
 
   audit:
     runs-on: ubuntu-latest

@@ -19,3 +19,8 @@ under CC0-1.0; repository source code remains MIT licensed.
 Tests skip backend-dependent cases only when FFmpeg/FFprobe or a declared
 optional capability is absent. CI records the capability matrix on Linux,
 macOS, and Windows, and Linux requires subtitle-filter support.
+
+Versioned recipe, plan, receipt, and fail-closed mutation fixtures live in
+[`contracts/`](contracts/README.md). Unlike the generated media corpus, these
+documents are immutable compatibility evidence and remain checked in when a
+new contract version is introduced.
