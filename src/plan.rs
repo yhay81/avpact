@@ -370,19 +370,7 @@ pub fn plan_recipe(recipe_path: &Path, ffmpeg: &Path, ffprobe: &Path) -> Result<
                 source,
             }
         })?;
-    if bytes.len() as u64 > MAX_RECIPE_DOCUMENT_BYTES {
-        return Err(AvpactError::RecipeInvalid {
-            message: format!(
-                "recipe exceeds the {} byte document limit",
-                MAX_RECIPE_DOCUMENT_BYTES
-            ),
-        });
-    }
-    let recipe: Recipe =
-        serde_json::from_slice(&bytes).map_err(|source| AvpactError::RecipeInvalid {
-            message: source.to_string(),
-        })?;
-    validate_recipe(&recipe)?;
+    let recipe = parse_recipe_document(&bytes)?;
 
     let recipe_directory = recipe_path
         .parent()
@@ -490,6 +478,29 @@ pub fn plan_recipe(recipe_path: &Path, ffmpeg: &Path, ffprobe: &Path) -> Result<
         Operation::ContactSheet { .. } => compile_contact_sheet(inputs),
         Operation::BurnSubtitles { .. } => compile_burn_subtitles(inputs),
     }
+}
+
+/// Parses and validates one bounded recipe document without performing file or backend I/O.
+///
+/// # Errors
+///
+/// Returns [`AvpactError::RecipeInvalid`] when the document exceeds the recipe
+/// size bound, is not valid JSON, or violates the recipe contract.
+pub fn parse_recipe_document(bytes: &[u8]) -> Result<Recipe, AvpactError> {
+    if bytes.len() as u64 > MAX_RECIPE_DOCUMENT_BYTES {
+        return Err(AvpactError::RecipeInvalid {
+            message: format!(
+                "recipe exceeds the {} byte document limit",
+                MAX_RECIPE_DOCUMENT_BYTES
+            ),
+        });
+    }
+    let recipe: Recipe =
+        serde_json::from_slice(bytes).map_err(|source| AvpactError::RecipeInvalid {
+            message: source.to_string(),
+        })?;
+    validate_recipe(&recipe)?;
+    Ok(recipe)
 }
 
 pub fn write_new_plan(path: &Path, json: &str) -> Result<(), AvpactError> {

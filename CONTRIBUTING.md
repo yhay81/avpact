@@ -26,6 +26,8 @@ cargo test --all-targets --locked
 
 Unit and fixture tests run without FFmpeg. Generated-media integration tests run
 when FFmpeg and FFprobe are available and skip otherwise.
+Untrusted recipe parsing is also covered by the reproducible workflow in
+[FUZZING.md](FUZZING.md).
 
 ## Making a change
 
