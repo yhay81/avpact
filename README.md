@@ -2,7 +2,7 @@
 
 Declarative, inspectable, and verifiable media transformations.
 
-> Status: 0.1 implementation. The complete local-file operation set is
+> Status: 0.1 release. The complete local-file operation set is
 > implemented and covered by unit, CLI, and generated-media integration tests.
 
 AVPact compiles a small set of media intents into a deterministic execution plan. The plan records streams, codecs, filters, expected outputs, resource limits, and verification checks before any transformation starts.
