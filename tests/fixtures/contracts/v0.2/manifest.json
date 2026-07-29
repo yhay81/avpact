@@ -1,0 +1,125 @@
+{
+  "schema_version": "avpact.contract-corpus/v0.2",
+  "license": "MIT",
+  "accepted": [
+    {
+      "document": "receipt",
+      "path": "receipt.clip.json",
+      "schema_version": "avpact.receipt/v0.2",
+      "sha256": "fa6640fd898ef405aeb37b7be0c5ac96d20633d36064620975377ac7259458c9",
+      "linked_plan": "../v0.1/plan.clip.json"
+    }
+  ],
+  "rejections": [
+    {
+      "id": "receipt_plan_digest_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/plan_digest",
+      "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind the complete plan digest"
+    },
+    {
+      "id": "receipt_backend_argv_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/backend/argv/0",
+      "value": "-tampered",
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind the executed backend arguments"
+    },
+    {
+      "id": "receipt_backend_identity_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/backend/version",
+      "value": "ffmpeg version tampered",
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind the backend build identity"
+    },
+    {
+      "id": "receipt_started_time_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/started_unix_ms",
+      "value": 1720000000001,
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind execution timing"
+    },
+    {
+      "id": "receipt_elapsed_time_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/elapsed_ms",
+      "value": 999,
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind measured elapsed time"
+    },
+    {
+      "id": "receipt_warning_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/warnings/0/message",
+      "value": "tampered warning",
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind bounded execution warnings"
+    },
+    {
+      "id": "receipt_verification_result_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/verification/checks/0/actual",
+      "value": "tampered result",
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind every verification result"
+    },
+    {
+      "id": "receipt_output_property_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/verification/output/source/size_bytes",
+      "value": 123455,
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind verified output properties"
+    },
+    {
+      "id": "receipt_publication_evidence_mutation",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "add",
+      "pointer": "/publication/cleanup_warning",
+      "value": "tampered cleanup evidence",
+      "expected_error_code": "receipt_invalid",
+      "reason": "the receipt identity must bind publication evidence"
+    },
+    {
+      "id": "receipt_truncated_identifier",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "replace",
+      "pointer": "/id",
+      "value": "rcpt_968f8c63d087e35132405981da6c248b",
+      "expected_error_code": "receipt_invalid",
+      "reason": "v0.2 receipt identifiers must retain the full SHA-256 digest"
+    },
+    {
+      "id": "receipt_unknown_field",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "operation": "add",
+      "pointer": "/unexpected",
+      "value": true,
+      "expected_error_code": "receipt_invalid",
+      "reason": "unknown receipt fields must fail closed"
+    }
+  ]
+}

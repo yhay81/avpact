@@ -8,6 +8,11 @@ semantic versioning.
 
 ### Added
 
+- Added the `avpact.receipt/v0.2` contract, whose full SHA-256 identifier binds
+  the plan digest, backend identity and arguments, timing, warnings,
+  verification report, and publication evidence.
+- Added a digest-pinned v0.2 golden receipt and fail-closed mutations for every
+  evidence category, plus receipt-store lookup-key substitution coverage.
 - Added platform-specific, checksum- and provenance-verified native
   installation, update, and removal guidance.
 - Added weekly installation smoke tests on Linux x86_64, macOS Apple Silicon
@@ -18,6 +23,10 @@ semantic versioning.
 
 ### Fixed
 
+- Rejected receipt evidence that no longer matches its recorded identifier and
+  receipts stored under a different valid lookup identifier. The reader
+  retains exact v0.1 compatibility and documents that legacy format's narrower
+  integrity bound.
 - Rejected performance evidence with a non-canonical commit identity,
   incomplete runner metadata, a non-raw sample marker, or reused sample paths.
 - Replaced post-publication receipt rollback with no-clobber recovery receipts.

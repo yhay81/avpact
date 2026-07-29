@@ -116,17 +116,20 @@ does not substitute for these gates.
   accuracy downgrade; the plan records every authorized fallback.
 
 Current evidence: v0.2 and v0.3 provide two released compatibility cycles. The
-current v0.3 reader accepts the digest-pinned v0.1 recipe, plan, and receipt
-corpus byte-for-byte, including declared fail-closed mutations, on every CI
-operating system. The v0.2 and v0.3 release notes record contract
-preservation; no migration is required. Future contract versions must add
-their own golden documents and an explicit migration or no-migration decision.
+current reader accepts the digest-pinned v0.1 recipe, plan, and receipt corpus
+byte-for-byte and emits content-addressed v0.2 receipts. Both receipt versions
+have golden documents and fail-closed mutation cases. The v0.1 format remains
+readable as legacy evidence; it cannot retroactively gain v0.2's complete-field
+binding, so no automatic migration is claimed. Future contract versions must
+add their own golden documents and an explicit migration or no-migration
+decision.
 
 ### Correctness and security
 
 - The published adversarial corpus has 100% detection of input identity
-  changes, receipt mutations, output-verification failures, unsafe
-  input/output aliasing, and attempts to overwrite an existing destination.
+  changes, current-format receipt mutations relative to a retained expected
+  identifier, output-verification failures, unsafe input/output aliasing, and
+  attempts to overwrite an existing destination.
 - Every forced failure before publication leaves the requested destination
   byte-identical or absent and leaves no unbounded temporary artifact. A forced
   receipt failure after publication retains the verified output, never deletes

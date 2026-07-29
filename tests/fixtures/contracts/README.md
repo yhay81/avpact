@@ -1,9 +1,13 @@
 # AVPact contract compatibility corpus
 
-This corpus freezes documents emitted or accepted by AVPact 0.1. Current and
-future readers must continue to accept every document in `v0.1/`, preserve its
-serialized representation, and reject every mutation declared in
-`v0.1/manifest.json`.
+This corpus freezes versioned documents emitted or accepted by AVPact. Current
+and future readers must continue to accept every golden document, preserve its
+serialized representation, and reject every mutation declared by the
+corresponding manifest.
+
+- `v0.1/` preserves the original recipe, plan, and legacy receipt contracts.
+- `v0.2/` pins the content-addressed receipt contract and its complete-evidence
+  integrity mutations.
 
 The fixtures use synthetic identities and platform-neutral relative paths.
 They do not refer to third-party media and are covered by the repository's MIT
