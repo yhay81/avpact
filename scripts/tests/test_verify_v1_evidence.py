@@ -59,7 +59,7 @@ def ready_manifest() -> dict:
         ]
     delivery["continuity"] = {
         "status": "satisfied",
-        "mode": "single-maintainer-recovery",
+        "mode": sorted(verifier.CONTINUITY_MODES)[0],
         "evidence": [evidence("continuity")],
     }
 
