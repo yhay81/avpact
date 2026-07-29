@@ -16,6 +16,11 @@ semantic versioning.
   backend-memory, and temporary-file thresholds from 20-sample Ubuntu 24.04
   benchmark evidence.
 
+### Fixed
+
+- Rejected performance evidence with a non-canonical commit identity,
+  incomplete runner metadata, a non-raw sample marker, or reused sample paths.
+
 ## [0.3.0] - 2026-07-29
 
 ### Compatibility
