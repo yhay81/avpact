@@ -43,6 +43,8 @@ jobs:
                   json.load(handle)
           print(f"validated {len(fixtures)} JSON fixtures")
           PY
+      - name: Adversarial safety corpus labels
+        run: python3 tests/fixtures/adversarial/v0.1/generate_corpus.py --check
 
   audit:
     runs-on: ubuntu-latest

@@ -1,0 +1,687 @@
+{
+  "cases": [
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-01",
+      "variant": 0
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-02",
+      "variant": 1
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-03",
+      "variant": 2
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-04",
+      "variant": 3
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-05",
+      "variant": 4
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-06",
+      "variant": 5
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-07",
+      "variant": 6
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-08",
+      "variant": 7
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-09",
+      "variant": 8
+    },
+    {
+      "category": "input_identity_change",
+      "expected": {
+        "code": "input_changed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "input-identity-change-10",
+      "variant": 9
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-01",
+      "mutation": {
+        "pointer": "/plan_digest",
+        "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "variant": 0
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-02",
+      "mutation": {
+        "pointer": "/plan_id",
+        "value": "plan_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "variant": 1
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-03",
+      "mutation": {
+        "pointer": "/started_unix_ms",
+        "value": 1720000000001
+      },
+      "variant": 2
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-04",
+      "mutation": {
+        "pointer": "/completed_unix_ms",
+        "value": 1720000001001
+      },
+      "variant": 3
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-05",
+      "mutation": {
+        "pointer": "/elapsed_ms",
+        "value": 999
+      },
+      "variant": 4
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-06",
+      "mutation": {
+        "pointer": "/backend/name",
+        "value": "ffmpeg-tampered"
+      },
+      "variant": 5
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-07",
+      "mutation": {
+        "pointer": "/backend/version",
+        "value": "ffmpeg version tampered"
+      },
+      "variant": 6
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-08",
+      "mutation": {
+        "pointer": "/backend/configuration",
+        "value": "--enable-tampered"
+      },
+      "variant": 7
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-09",
+      "mutation": {
+        "pointer": "/backend/library_versions/libavcodec",
+        "value": "9.9.9 / 9.9.9"
+      },
+      "variant": 8
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-10",
+      "mutation": {
+        "pointer": "/backend/argv/0",
+        "value": "-tampered"
+      },
+      "variant": 9
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-11",
+      "mutation": {
+        "pointer": "/warnings/0/code",
+        "value": "tampered_warning"
+      },
+      "variant": 10
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-12",
+      "mutation": {
+        "pointer": "/warnings/0/message",
+        "value": "tampered warning evidence"
+      },
+      "variant": 11
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-13",
+      "mutation": {
+        "pointer": "/verification/plan_id",
+        "value": "plan_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "variant": 12
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-14",
+      "mutation": {
+        "pointer": "/verification/output/source/size_bytes",
+        "value": 123455
+      },
+      "variant": 13
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-15",
+      "mutation": {
+        "pointer": "/verification/output/source/sha256",
+        "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "variant": 14
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-16",
+      "mutation": {
+        "pointer": "/verification/output/format/duration_ms",
+        "value": 999
+      },
+      "variant": 15
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-17",
+      "mutation": {
+        "pointer": "/verification/output/streams/0/codec",
+        "value": "vp9"
+      },
+      "variant": 16
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-18",
+      "mutation": {
+        "pointer": "/verification/checks/0/actual",
+        "value": "tampered result"
+      },
+      "variant": 17
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-19",
+      "mutation": {
+        "pointer": "/publication/output",
+        "value": "other.mp4"
+      },
+      "variant": 18
+    },
+    {
+      "category": "receipt_mutation",
+      "expected": {
+        "code": "receipt_invalid",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "receipt-mutation-20",
+      "mutation": {
+        "pointer": "/publication/method",
+        "value": "rename"
+      },
+      "variant": 19
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-01",
+      "variant": 0
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-02",
+      "variant": 1
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-03",
+      "variant": 2
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-04",
+      "variant": 3
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-05",
+      "variant": 4
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-06",
+      "variant": 5
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-07",
+      "variant": 6
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-08",
+      "variant": 7
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-09",
+      "variant": 8
+    },
+    {
+      "category": "output_verification_failure",
+      "expected": {
+        "code": "verification_failed",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "output-verification-failure-10",
+      "variant": 9
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-01",
+      "variant": 0
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-02",
+      "variant": 1
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-03",
+      "variant": 2
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-04",
+      "variant": 3
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-05",
+      "variant": 4
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-06",
+      "variant": 5
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-07",
+      "variant": 6
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "input_output_conflict",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-08",
+      "variant": 7
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-09",
+      "variant": 8
+    },
+    {
+      "category": "unsafe_alias",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "unsafe-alias-10",
+      "variant": 9
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-01",
+      "variant": 0
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-02",
+      "variant": 1
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-03",
+      "variant": 2
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-04",
+      "variant": 3
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-05",
+      "variant": 4
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-06",
+      "variant": 5
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-07",
+      "variant": 6
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-08",
+      "variant": 7
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-09",
+      "variant": 8
+    },
+    {
+      "category": "existing_destination",
+      "expected": {
+        "code": "output_exists",
+        "destination_changes": 0,
+        "leaked_temporary_paths": 0
+      },
+      "id": "existing-destination-10",
+      "variant": 9
+    }
+  ],
+  "generator": "generate_corpus.py",
+  "license": "MIT",
+  "schema_version": "avpact.adversarial-corpus/v0.1"
+}
