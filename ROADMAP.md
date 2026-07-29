@@ -68,8 +68,10 @@ argument and warning in the resulting plan.
 - [x] Persist a receipt containing plan, backend, timing, output, and checks.
 - [x] Store receipts by durable ID and support `receipt show`.
 
-Done when an end-to-end clip either publishes a verified output and receipt or
-leaves the requested destination untouched.
+Done when an end-to-end clip either publishes a verified output and receipt,
+leaves the requested destination untouched before publication, or retains the
+verified output plus explicit recovery evidence when final receipt persistence
+fails.
 
 ### 5. Operation expansion
 
@@ -125,8 +127,11 @@ their own golden documents and an explicit migration or no-migration decision.
 - The published adversarial corpus has 100% detection of input identity
   changes, receipt mutations, output-verification failures, unsafe
   input/output aliasing, and attempts to overwrite an existing destination.
-- Every forced-failure fixture leaves the requested destination byte-identical
-  or absent, and leaves no unbounded temporary artifact.
+- Every forced failure before publication leaves the requested destination
+  byte-identical or absent and leaves no unbounded temporary artifact. A forced
+  receipt failure after publication retains the verified output, never deletes
+  a path after a separate identity check, and emits bounded, machine-actionable
+  reconciliation evidence.
 - Each operation meets its published duration, geometry, stream, loudness, and
   content-verification tolerances across the supported FFmpeg matrix.
 - An independent security review covers path and symlink handling, temporary

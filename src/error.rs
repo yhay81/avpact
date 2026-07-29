@@ -1,5 +1,7 @@
-use std::path::PathBuf;
+use std::fmt;
+use std::path::{Path, PathBuf};
 
+use schemars::JsonSchema;
 use serde::Serialize;
 use thiserror::Error;
 
@@ -142,10 +144,11 @@ pub enum AvpactError {
         source: std::io::Error,
     },
 
-    #[error(
-        "receipt persistence failed and published output {output} could not be safely rolled back: {message}"
-    )]
-    ReceiptRollbackFailed { output: PathBuf, message: String },
+    #[error("{0}")]
+    ReceiptRecoveryRequired(Box<ReceiptRecovery>),
+
+    #[error("{0}")]
+    ReceiptRecoveryFailed(Box<ReceiptRecovery>),
 
     #[error("cannot read receipt {path}: {source}")]
     ReceiptRead {
@@ -190,7 +193,8 @@ impl AvpactError {
             Self::PublishFailed { .. } => "publish_failed",
             Self::ReceiptExists { .. } => "receipt_exists",
             Self::ReceiptWrite { .. } => "receipt_write_failed",
-            Self::ReceiptRollbackFailed { .. } => "receipt_rollback_failed",
+            Self::ReceiptRecoveryRequired(_) => "receipt_recovery_required",
+            Self::ReceiptRecoveryFailed(_) => "receipt_recovery_failed",
             Self::ReceiptRead { .. } => "receipt_read_failed",
             Self::ReceiptInvalid { .. } => "receipt_invalid",
         }
@@ -202,6 +206,47 @@ impl AvpactError {
                 Some(diagnostic.as_str())
             }
             _ => None,
+        }
+    }
+
+    fn recovery(&self) -> Option<RecoveryEvidence> {
+        match self {
+            Self::ReceiptRecoveryRequired(recovery) | Self::ReceiptRecoveryFailed(recovery) => {
+                Some(RecoveryEvidence::new(recovery))
+            }
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ReceiptRecovery {
+    pub output: PathBuf,
+    pub output_sha256: String,
+    pub requested_receipt: PathBuf,
+    pub recovery_receipt: PathBuf,
+    pub recovery_receipt_persisted: bool,
+    pub message: String,
+}
+
+impl fmt::Display for ReceiptRecovery {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.recovery_receipt_persisted {
+            write!(
+                formatter,
+                "receipt persistence failed after verified output {} was published; recovery receipt saved to {}; do not rerun apply: {}",
+                self.output.display(),
+                self.recovery_receipt.display(),
+                self.message
+            )
+        } else {
+            write!(
+                formatter,
+                "receipt persistence failed after verified output {} was published, and recovery receipt {} could not be written; output retained; do not rerun apply: {}",
+                self.output.display(),
+                self.recovery_receipt.display(),
+                self.message
+            )
         }
     }
 }
@@ -218,6 +263,41 @@ pub struct ErrorBody<'a> {
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub diagnostic: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recovery: Option<RecoveryEvidence>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RecoveryEvidence {
+    pub action: RecoveryAction,
+    pub output: String,
+    pub output_sha256: String,
+    pub requested_receipt: String,
+    pub recovery_receipt: String,
+    pub recovery_receipt_persisted: bool,
+}
+
+impl RecoveryEvidence {
+    fn new(recovery: &ReceiptRecovery) -> Self {
+        Self {
+            action: RecoveryAction::DoNotRetryApply,
+            output: path_text(&recovery.output),
+            output_sha256: recovery.output_sha256.clone(),
+            requested_receipt: path_text(&recovery.requested_receipt),
+            recovery_receipt: path_text(&recovery.recovery_receipt),
+            recovery_receipt_persisted: recovery.recovery_receipt_persisted,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum RecoveryAction {
+    DoNotRetryApply,
+}
+
+fn path_text(path: &Path) -> String {
+    path.to_string_lossy().into_owned()
 }
 
 impl<'a> From<&'a AvpactError> for ErrorDocument<'a> {
@@ -228,6 +308,7 @@ impl<'a> From<&'a AvpactError> for ErrorDocument<'a> {
                 code: error.code(),
                 message: error.to_string(),
                 diagnostic: error.diagnostic(),
+                recovery: error.recovery(),
             },
         }
     }
@@ -247,5 +328,34 @@ mod tests {
         let input = vec![b'x'; MAX_DIAGNOSTIC_BYTES + 100];
         let result = bounded_diagnostic(&input);
         assert_eq!(result.len(), MAX_DIAGNOSTIC_BYTES);
+    }
+
+    #[test]
+    fn recovery_errors_emit_machine_actionable_evidence() {
+        let error = AvpactError::ReceiptRecoveryRequired(Box::new(ReceiptRecovery {
+            output: PathBuf::from("clip.mp4"),
+            output_sha256: "a".repeat(64),
+            requested_receipt: PathBuf::from("receipt.json"),
+            recovery_receipt: PathBuf::from(".avpact-recovery-rcpt_test.json"),
+            recovery_receipt_persisted: true,
+            message: "primary write failed".to_owned(),
+        }));
+
+        let document =
+            serde_json::to_value(ErrorDocument::from(&error)).expect("serialize error document");
+        assert_eq!(document["error"]["code"], "receipt_recovery_required");
+        assert_eq!(
+            document["error"]["recovery"]["action"],
+            "do_not_retry_apply"
+        );
+        assert_eq!(document["error"]["recovery"]["output"], "clip.mp4");
+        assert_eq!(
+            document["error"]["recovery"]["output_sha256"],
+            "a".repeat(64)
+        );
+        assert_eq!(
+            document["error"]["recovery"]["recovery_receipt_persisted"],
+            true
+        );
     }
 }

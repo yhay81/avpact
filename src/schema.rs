@@ -4,6 +4,7 @@ use serde_json::Value;
 
 use crate::apply::{ProgressEvent, Receipt, VerificationReport};
 use crate::capability::CapabilityReport;
+use crate::error::RecoveryAction;
 use crate::model::InspectionReport;
 use crate::plan::{Plan, Recipe};
 
@@ -92,6 +93,18 @@ struct ErrorSchemaBody {
     message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     diagnostic: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    recovery: Option<ErrorRecoverySchema>,
+}
+
+#[derive(JsonSchema, Serialize)]
+struct ErrorRecoverySchema {
+    action: RecoveryAction,
+    output: String,
+    output_sha256: String,
+    requested_receipt: String,
+    recovery_receipt: String,
+    recovery_receipt_persisted: bool,
 }
 
 #[cfg(test)]
@@ -116,5 +129,13 @@ mod tests {
                 Some("https://json-schema.org/draft/2020-12/schema")
             );
         }
+    }
+
+    #[test]
+    fn error_schema_declares_the_receipt_recovery_action() {
+        let schema = document(Document::Error).expect("serialize error schema");
+        let serialized = serde_json::to_string(&schema).expect("render error schema");
+        assert!(serialized.contains("do_not_retry_apply"));
+        assert!(serialized.contains("recovery_receipt_persisted"));
     }
 }

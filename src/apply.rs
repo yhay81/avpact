@@ -13,7 +13,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::error::{AvpactError, bounded_diagnostic};
+use crate::error::{AvpactError, ReceiptRecovery, bounded_diagnostic};
 use crate::hex::encode_lower;
 use crate::inspect;
 use crate::model::{InspectionReport, StreamKind};
@@ -156,15 +156,7 @@ where
     preflight_receipt_path(receipt_path)?;
     let receipt =
         execute_plan_with_cancellation(plan_path, ffmpeg, ffprobe, cancellation, on_progress)?;
-    if let Err(write_error) = write_new_receipt(receipt_path, &receipt) {
-        rollback_published_output(&receipt).map_err(|rollback_error| {
-            AvpactError::ReceiptRollbackFailed {
-                output: receipt.publication.output.clone(),
-                message: format!("{write_error}; {rollback_error}"),
-            }
-        })?;
-        return Err(write_error);
-    }
+    persist_receipt_with_recovery(receipt_path, &receipt)?;
     Ok(receipt)
 }
 
@@ -183,15 +175,7 @@ where
     let receipt =
         execute_plan_with_cancellation(plan_path, ffmpeg, ffprobe, cancellation, on_progress)?;
     let receipt_path = receipt_store_path(state_dir, &receipt.id)?;
-    if let Err(write_error) = write_new_receipt(&receipt_path, &receipt) {
-        rollback_published_output(&receipt).map_err(|rollback_error| {
-            AvpactError::ReceiptRollbackFailed {
-                output: receipt.publication.output.clone(),
-                message: format!("{write_error}; {rollback_error}"),
-            }
-        })?;
-        return Err(write_error);
-    }
+    persist_receipt_with_recovery(&receipt_path, &receipt)?;
     Ok(receipt)
 }
 
@@ -1025,8 +1009,6 @@ pub fn write_new_receipt(path: &Path, receipt: &Receipt) -> Result<(), AvpactErr
         .and_then(|()| file.write_all(b"\n"))
         .and_then(|()| file.sync_all());
     if let Err(source) = write_result {
-        drop(file);
-        let _ = fs::remove_file(path);
         return Err(AvpactError::ReceiptWrite {
             path: path.to_path_buf(),
             source,
@@ -1035,20 +1017,62 @@ pub fn write_new_receipt(path: &Path, receipt: &Receipt) -> Result<(), AvpactErr
     Ok(())
 }
 
-fn rollback_published_output(receipt: &Receipt) -> Result<(), String> {
-    let output = &receipt.publication.output;
-    if !output.exists() {
+fn persist_receipt_with_recovery(
+    requested_path: &Path,
+    receipt: &Receipt,
+) -> Result<(), AvpactError> {
+    persist_receipt_with_recovery_using(requested_path, receipt, write_new_receipt)
+}
+
+fn persist_receipt_with_recovery_using<F>(
+    requested_path: &Path,
+    receipt: &Receipt,
+    mut write_receipt: F,
+) -> Result<(), AvpactError>
+where
+    F: FnMut(&Path, &Receipt) -> Result<(), AvpactError>,
+{
+    let Err(primary_error) = write_receipt(requested_path, receipt) else {
         return Ok(());
+    };
+    let recovery_path = recovery_receipt_path(receipt);
+    let common = (
+        receipt.publication.output.clone(),
+        receipt.verification.output.source.sha256.clone(),
+        requested_path.to_path_buf(),
+        recovery_path.clone(),
+    );
+    match write_receipt(&recovery_path, receipt) {
+        Ok(()) => Err(AvpactError::ReceiptRecoveryRequired(Box::new(
+            ReceiptRecovery {
+                output: common.0,
+                output_sha256: common.1,
+                requested_receipt: common.2,
+                recovery_receipt: common.3,
+                recovery_receipt_persisted: true,
+                message: primary_error.to_string(),
+            },
+        ))),
+        Err(recovery_error) => Err(AvpactError::ReceiptRecoveryFailed(Box::new(
+            ReceiptRecovery {
+                output: common.0,
+                output_sha256: common.1,
+                requested_receipt: common.2,
+                recovery_receipt: common.3,
+                recovery_receipt_persisted: false,
+                message: format!("{primary_error}; recovery persistence failed: {recovery_error}"),
+            },
+        ))),
     }
-    let current = inspect::identify_source(output)
-        .map_err(|error| format!("could not identify published output before rollback: {error}"))?;
-    if current != receipt.verification.output.source {
-        return Err(
-            "published output identity changed after verification; refusing to remove it"
-                .to_owned(),
-        );
-    }
-    fs::remove_file(output).map_err(|error| format!("could not remove published output: {error}"))
+}
+
+fn recovery_receipt_path(receipt: &Receipt) -> PathBuf {
+    let parent = receipt
+        .publication
+        .output
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
+    parent.join(format!(".avpact-recovery-{}.json", receipt.id))
 }
 
 pub fn receipt_store_path(state_dir: &Path, receipt_id: &str) -> Result<PathBuf, AvpactError> {
@@ -1313,6 +1337,68 @@ mod tests {
         let bytes = vec![b'x'; MAX_BACKEND_DIAGNOSTIC_BYTES + 50];
         let result = read_bounded_tail(bytes.as_slice());
         assert_eq!(result.len(), MAX_BACKEND_DIAGNOSTIC_BYTES);
+    }
+
+    #[test]
+    fn receipt_primary_failure_uses_no_clobber_recovery_path() {
+        let receipt: Receipt = serde_json::from_str(include_str!(
+            "../tests/fixtures/contracts/v0.1/receipt.clip.json"
+        ))
+        .expect("parse receipt fixture");
+        let requested = PathBuf::from("requested.json");
+        let expected_recovery = recovery_receipt_path(&receipt);
+        let mut attempted = Vec::new();
+
+        let error = persist_receipt_with_recovery_using(&requested, &receipt, |path, _receipt| {
+            attempted.push(path.to_path_buf());
+            if path == requested {
+                Err(AvpactError::ReceiptWrite {
+                    path: path.to_path_buf(),
+                    source: std::io::Error::other("primary failure"),
+                })
+            } else {
+                Ok(())
+            }
+        })
+        .expect_err("primary failure requires reconciliation");
+
+        assert_eq!(
+            attempted,
+            vec![requested.clone(), expected_recovery.clone()]
+        );
+        assert!(matches!(
+            error,
+            AvpactError::ReceiptRecoveryRequired(recovery)
+                if recovery.requested_receipt == requested
+                    && recovery.recovery_receipt == expected_recovery
+        ));
+    }
+
+    #[test]
+    fn receipt_recovery_failure_retains_machine_actionable_identity() {
+        let receipt: Receipt = serde_json::from_str(include_str!(
+            "../tests/fixtures/contracts/v0.1/receipt.clip.json"
+        ))
+        .expect("parse receipt fixture");
+        let requested = PathBuf::from("requested.json");
+        let expected_recovery = recovery_receipt_path(&receipt);
+
+        let error = persist_receipt_with_recovery_using(&requested, &receipt, |path, _receipt| {
+            Err(AvpactError::ReceiptWrite {
+                path: path.to_path_buf(),
+                source: std::io::Error::other("forced failure"),
+            })
+        })
+        .expect_err("both writes must fail");
+
+        assert!(matches!(
+            error,
+            AvpactError::ReceiptRecoveryFailed(recovery)
+                if recovery.output == receipt.publication.output
+                    && recovery.output_sha256 == receipt.verification.output.source.sha256
+                    && recovery.requested_receipt == requested
+                    && recovery.recovery_receipt == expected_recovery
+        ));
     }
 
     #[test]

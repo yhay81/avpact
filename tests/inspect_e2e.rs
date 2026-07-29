@@ -215,9 +215,9 @@ fn applies_verifies_and_receipts_a_planned_clip() {
 }
 
 #[test]
-fn rolls_back_publication_when_receipt_persistence_fails() {
+fn preserves_publication_and_writes_recovery_receipt_when_primary_persistence_fails() {
     if !is_available("ffmpeg") || !is_available("ffprobe") {
-        eprintln!("skipping receipt rollback test: ffmpeg or ffprobe is unavailable");
+        eprintln!("skipping receipt recovery test: ffmpeg or ffprobe is unavailable");
         return;
     }
 
@@ -247,16 +247,27 @@ fn rolls_back_publication_when_receipt_persistence_fails() {
         |_| {},
     );
 
-    assert!(matches!(
-        result,
-        Err(avpact::error::AvpactError::ReceiptWrite { .. })
-    ));
+    let error = result.expect_err("primary receipt persistence must fail");
+    let (recovery_receipt, output_sha256) = match error {
+        avpact::error::AvpactError::ReceiptRecoveryRequired(recovery) => {
+            assert_eq!(recovery.output, plan.output.path);
+            assert_eq!(recovery.requested_receipt, receipt_path);
+            (recovery.recovery_receipt, recovery.output_sha256)
+        }
+        other => panic!("unexpected receipt failure: {other}"),
+    };
     assert!(
-        !output.exists(),
-        "receipt failure must roll back the published output"
+        output.is_file(),
+        "receipt failure must retain the already verified output"
     );
     assert!(!plan.output.temporary_path.exists());
     assert!(!receipt_path.exists());
+    assert!(recovery_receipt.is_file());
+
+    let recovered = avpact::apply::read_receipt(&recovery_receipt).expect("read recovery receipt");
+    assert_eq!(recovered.publication.output, plan.output.path);
+    assert_eq!(recovered.verification.output.source.sha256, output_sha256);
+    assert!(recovered.verification.passed);
 }
 
 #[test]
