@@ -12,15 +12,17 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import verify_v1_evidence as verifier
 
+REPOSITORY_URL = f"https://github.com/yhay81/{verifier.PROJECT}"
+
 
 def evidence(label: str) -> dict[str, str]:
-    return {"label": label, "url": f"https://github.com/yhay81/avpact/issues/{label}"}
+    return {"label": label, "url": f"{REPOSITORY_URL}/issues/{label}"}
 
 
 def criterion_evidence(criterion: str) -> dict[str, str]:
     return {
         "criterion": criterion,
-        "url": f"https://github.com/yhay81/avpact/issues/{criterion}",
+        "url": f"{REPOSITORY_URL}/issues/{criterion}",
     }
 
 
@@ -38,7 +40,7 @@ def ready_manifest() -> dict:
     security["independent_review"] = {
         "reviewer": "independent-reviewer",
         "completed_on": "2026-07-25",
-        "url": "https://github.com/yhay81/avpact/issues/security-review",
+        "url": f"{REPOSITORY_URL}/issues/security-review",
     }
     security["reviewed_areas"] = sorted(verifier.REVIEW_AREAS)
 
@@ -50,8 +52,7 @@ def ready_manifest() -> dict:
             {
                 "date": (date(2026, 6, 30) + timedelta(days=offset)).isoformat(),
                 "url": (
-                    "https://github.com/yhay81/avpact/actions/runs/"
-                    f"{100000 + offset}"
+                    f"{REPOSITORY_URL}/actions/runs/{100000 + offset}"
                 ),
             }
             for offset in range(30)
@@ -66,10 +67,10 @@ def ready_manifest() -> dict:
     adoption["adopters"] = [
         {
             "name": name,
-            "workflow": f"{name} media publication workflow",
-            "outcome": "Verification prevented an invalid media publication.",
+            "workflow": f"{name} production workflow",
+            "outcome": "Verification or a safe refusal improved the decision.",
             "first_use": first_use,
-            "evidence": f"https://github.com/yhay81/avpact/discussions/{index}",
+            "evidence": f"{REPOSITORY_URL}/discussions/{index}",
         }
         for index, (name, first_use) in enumerate(
             [
@@ -84,12 +85,12 @@ def ready_manifest() -> dict:
         {
             "adopter": "Studio Alpha",
             "repeat_use": "2026-07-01",
-            "evidence": "https://github.com/yhay81/avpact/discussions/11",
+            "evidence": f"{REPOSITORY_URL}/discussions/11",
         },
         {
             "adopter": "Team Beta",
             "repeat_use": "2026-07-10",
-            "evidence": "https://github.com/yhay81/avpact/discussions/12",
+            "evidence": f"{REPOSITORY_URL}/discussions/12",
         },
     ]
     adoption["public_integration"] = evidence("public-integration")

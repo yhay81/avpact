@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the reviewable evidence required before an AVPact v1+ release."""
+"""Validate the reviewable evidence required before an OSS CLI v1+ release."""
 
 from __future__ import annotations
 
@@ -510,7 +510,7 @@ def readiness_errors(
     if len(repeated_names & unique_adopters) < 2:
         fail("repeat-adopters", "at least two distinct adopters need 30-day repeat use")
     if adoption["public_integration"] is None:
-        fail("public-integration", "public plan-review and verified-apply integration is missing")
+        fail("public-integration", "required public integration evidence is missing")
     if adoption["non_maintainer_contribution"] is None:
         fail("external-contribution", "resolved non-maintainer contribution is missing")
 
