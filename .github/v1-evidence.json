@@ -27,7 +27,7 @@
         "start": null,
         "end": null,
         "required_days": 30,
-        "platforms": {
+        "tracks": {
           "linux": [],
           "macos": [],
           "windows": []

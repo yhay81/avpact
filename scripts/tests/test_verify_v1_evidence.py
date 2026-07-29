@@ -45,8 +45,8 @@ def ready_manifest() -> dict:
     delivery = gates["delivery_maintenance"]
     delivery["ci_window"]["start"] = "2026-06-30"
     delivery["ci_window"]["end"] = "2026-07-29"
-    for platform in verifier.PLATFORMS:
-        delivery["ci_window"]["platforms"][platform] = [
+    for track in verifier.CI_TRACKS:
+        delivery["ci_window"]["tracks"][track] = [
             {
                 "date": (date(2026, 6, 30) + timedelta(days=offset)).isoformat(),
                 "url": (
@@ -157,7 +157,7 @@ class ReadinessTests(unittest.TestCase):
 
     def test_ci_window_requires_daily_evidence_for_each_platform(self) -> None:
         manifest = ready_manifest()
-        manifest["gates"]["delivery_maintenance"]["ci_window"]["platforms"][
+        manifest["gates"]["delivery_maintenance"]["ci_window"]["tracks"][
             "windows"
         ].pop()
         manifest = verifier.validate_structure(manifest)

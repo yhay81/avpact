@@ -27,8 +27,8 @@ a release tag.
    The verifier derives readiness from the evidence. Do not add a bypass,
    suppress a failed gate, count maintainer activity as adoption, or move
    evidence dates forward. The CI window must end on the manifest's `as_of`
-   date and include one public successful-run URL for every platform on every
-   date in the window.
+   date and include one public successful-run URL for every required continuous
+   track on every date in the window.
 4. Run the local release gate:
 
    ```bash

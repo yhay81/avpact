@@ -55,7 +55,7 @@ REVIEW_AREAS = {
     "receipt-integrity",
     "diagnostic-redaction",
 }
-PLATFORMS = {"linux", "macos", "windows"}
+CI_TRACKS = {"linux", "macos", "windows"}
 STATUSES = {"pending", "satisfied"}
 CONTINUITY_MODES = {"two-maintainer-drill", "single-maintainer-recovery"}
 MAX_MANIFEST_BYTES = 1024 * 1024
@@ -250,17 +250,17 @@ def _correctness_gate(value: Any, path: str) -> None:
 
 def _ci_window(value: Any, path: str) -> None:
     window = _object(value, path)
-    _exact_keys(window, {"start", "end", "required_days", "platforms"}, path)
+    _exact_keys(window, {"start", "end", "required_days", "tracks"}, path)
     _date(window["start"], f"{path}.start", nullable=True)
     _date(window["end"], f"{path}.end", nullable=True)
     required_days = _nonnegative_integer(window["required_days"], f"{path}.required_days")
     if required_days != 30:
         raise EvidenceError(f"{path}.required_days must remain 30")
-    platforms = _object(window["platforms"], f"{path}.platforms")
-    _exact_keys(platforms, PLATFORMS, f"{path}.platforms")
-    for platform in sorted(PLATFORMS):
-        runs = platforms[platform]
-        run_path = f"{path}.platforms.{platform}"
+    tracks = _object(window["tracks"], f"{path}.tracks")
+    _exact_keys(tracks, CI_TRACKS, f"{path}.tracks")
+    for track in sorted(CI_TRACKS):
+        runs = tracks[track]
+        run_path = f"{path}.tracks.{track}"
         if not isinstance(runs, list):
             raise EvidenceError(f"{run_path} must be an array")
         dates: list[date] = []
@@ -446,23 +446,23 @@ def readiness_errors(
             start + timedelta(days=offset)
             for offset in range((end - start).days + 1)
         }
-    for platform in sorted(PLATFORMS):
+    for track in sorted(CI_TRACKS):
         actual_dates = {
-            _date(run["date"], f"$.gates.delivery_maintenance.ci_window.{platform}[]")
-            for run in window["platforms"][platform]
+            _date(run["date"], f"$.gates.delivery_maintenance.ci_window.{track}[]")
+            for run in window["tracks"][track]
         }
         missing_dates = sorted(expected_dates - actual_dates)
         extra_dates = sorted(actual_dates - expected_dates)
         if missing_dates:
             fail(
                 "ci-platform",
-                f"{platform} CI evidence is missing dates: "
+                f"{track} continuous evidence is missing dates: "
                 + ", ".join(day.isoformat() for day in missing_dates),
             )
         if extra_dates:
             fail(
                 "ci-platform",
-                f"{platform} CI evidence falls outside the window: "
+                f"{track} continuous evidence falls outside the window: "
                 + ", ".join(day.isoformat() for day in extra_dates),
             )
 
