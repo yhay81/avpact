@@ -43,12 +43,16 @@ documented in [docs/OPERATIONS.md](docs/OPERATIONS.md).
 
 ## Install
 
-Download a native archive from GitHub Releases, or install from a source
-checkout:
+Download a native archive from
+[GitHub Releases](https://github.com/yhay81/avpact/releases), or install from a
+source checkout:
 
 ```bash
 cargo install --path . --locked
 ```
+
+See [INSTALL.md](INSTALL.md) for platform-specific, checksum- and
+provenance-verified native installation, updating, and removal.
 
 FFmpeg and FFprobe must be available on `PATH`. Because codec/filter support
 varies by build, inspect it before automation:
