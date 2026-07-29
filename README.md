@@ -115,11 +115,11 @@ accepted v0.1 recipes, plans, and receipts. CI checks exact round trips,
 semantic validation, fixture digests, and fail-closed behavior for declared
 tampering cases.
 
-The versioned [performance harness](benchmarks/README.md) publishes raw
-contract, inspect, plan, apply, progress, receipt, verification, resource, and
-cleanup baselines over project-generated synthetic media. Initial measurements
-are observation-only until the documented p95 and component-isolation policy
-is established.
+The versioned [performance harness](benchmarks/README.md) enforces contract,
+end-to-end plan, CLI process-tree memory, isolated backend memory, and
+temporary-file thresholds from 20 samples over project-generated synthetic
+media. It retains every raw sample and applies a noise-aware regression
+envelope against the checked-in Ubuntu 24.04 baseline.
 
 ## Release integrity
 

@@ -147,6 +147,13 @@ their own golden documents and an explicit migration or no-migration decision.
 - Benchmark methodology, runner image, FFmpeg build, raw measurements, and
   regression thresholds are versioned with the repository.
 
+Current evidence enforces a stronger 250 ms p95 end-to-end planning bound that
+includes the excluded hashing, FFprobe, and FFmpeg capability work. The CLI
+process-tree RSS bound includes child processes and therefore upper-bounds the
+AVPact parent; the exact planned FFmpeg invocation is also measured and
+reported independently. One warm-up and 20 raw samples on Ubuntu 24.04 feed
+nearest-rank p95 and versioned noise-aware regression limits.
+
 ### Delivery and maintenance
 
 - Required CI stays green on Linux, macOS, and Windows for 30 consecutive days

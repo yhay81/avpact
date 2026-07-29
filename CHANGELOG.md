@@ -12,6 +12,9 @@ semantic versioning.
   installation, update, and removal guidance.
 - Added weekly installation smoke tests on Linux x86_64, macOS Apple Silicon
   and Intel, and Windows x86_64 using the published instructions.
+- Enforced the published v1.0 planning, contract, parent-memory upper-bound,
+  backend-memory, and temporary-file thresholds from 20-sample Ubuntu 24.04
+  benchmark evidence.
 
 ## [0.3.0] - 2026-07-29
 

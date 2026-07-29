@@ -7,7 +7,7 @@ root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 result_path="${1:-${root_dir}/benchmark-results.json}"
 binary="${root_dir}/target/release/avpact"
 
-for dependency in cargo cmp ffmpeg ffprobe git jq stat timeout uname; do
+for dependency in cargo cmp ffmpeg ffprobe git grep jq stat timeout uname; do
   command -v "${dependency}" >/dev/null || {
     printf 'missing benchmark dependency: %s\n' "${dependency}" >&2
     exit 1
@@ -96,6 +96,9 @@ plan_diagnostics="${temp_dir}/plan.stderr"
 apply_metrics="${temp_dir}/apply.metrics.json"
 apply_output="${temp_dir}/apply.stdout.json"
 progress_output="${temp_dir}/apply.progress.ndjson"
+backend_metrics="${temp_dir}/backend.metrics.json"
+backend_progress="${temp_dir}/backend.progress"
+backend_diagnostics="${temp_dir}/backend.stderr"
 verify_metrics="${temp_dir}/verify.metrics.json"
 verify_output="${temp_dir}/verify.json"
 verify_diagnostics="${temp_dir}/verify.stderr"
@@ -120,6 +123,21 @@ jq -e '
   and (.verification_checks | length > 0)
 ' "${plan}" >/dev/null
 
+temporary_output="$(jq -er '.output.temporary_path' "${plan}")"
+mapfile -t backend_argv < <(jq -er '.backend.argv[]' "${plan}")
+/usr/bin/time \
+  -f '{"wall_seconds": %e, "max_rss_kib": %M, "exit_code": %x}' \
+  -o "${backend_metrics}" \
+  timeout --signal=KILL 120s \
+  ffmpeg "${backend_argv[@]}" >"${backend_progress}" 2>"${backend_diagnostics}"
+jq -e . "${backend_metrics}" >/dev/null
+grep -qx 'progress=end' "${backend_progress}"
+test -s "${temporary_output}"
+backend_temporary_bytes="$(stat -c '%s' "${temporary_output}")"
+max_temporary_bytes="$(jq -er '.resources.max_temporary_bytes' "${plan}")"
+test "${backend_temporary_bytes}" -le "${max_temporary_bytes}"
+rm -f "${temporary_output}"
+
 measure "${apply_metrics}" "${apply_output}" "${progress_output}" \
   "${binary}" apply "${plan}" \
   --receipt-out "${receipt}" \
@@ -139,7 +157,6 @@ jq -e '
   and .publication.method == "same_filesystem_hard_link"
 ' "${receipt}" >/dev/null
 test -s "${output_media}"
-temporary_output="$(jq -er '.output.temporary_path' "${plan}")"
 test ! -e "${temporary_output}"
 
 measure "${verify_metrics}" "${verify_output}" "${verify_diagnostics}" \
@@ -168,6 +185,10 @@ jq -n \
   --argjson plan_diagnostic_bytes "$(stat -c '%s' "${plan_diagnostics}")" \
   --argjson apply_output_bytes "$(stat -c '%s' "${apply_output}")" \
   --argjson progress_output_bytes "$(stat -c '%s' "${progress_output}")" \
+  --argjson backend_progress_bytes "$(stat -c '%s' "${backend_progress}")" \
+  --argjson backend_diagnostic_bytes "$(stat -c '%s' "${backend_diagnostics}")" \
+  --argjson backend_temporary_bytes "${backend_temporary_bytes}" \
+  --argjson max_temporary_bytes "${max_temporary_bytes}" \
   --argjson receipt_bytes "$(stat -c '%s' "${receipt}")" \
   --argjson output_media_bytes "$(stat -c '%s' "${output_media}")" \
   --argjson verify_output_bytes "$(stat -c '%s' "${verify_output}")" \
@@ -180,6 +201,7 @@ jq -n \
   --slurpfile inspection "${inspect_output}" \
   --slurpfile plan_metrics "${plan_metrics}" \
   --slurpfile plan "${plan}" \
+  --slurpfile backend_metrics "${backend_metrics}" \
   --slurpfile apply_metrics "${apply_metrics}" \
   --slurpfile receipt "${receipt}" \
   --slurpfile progress "${progress_output}" \
@@ -275,6 +297,19 @@ jq -n \
         }
       },
       {
+        id: "backend_apply_clip",
+        class: "backend_isolated",
+        scope: "FFmpeg process executed independently from the exact planned argv",
+        process: $backend_metrics[0],
+        output_bytes: $backend_progress_bytes,
+        diagnostic_bytes: $backend_diagnostic_bytes,
+        result: {
+          progress_finished: true,
+          temporary_output_bytes: $backend_temporary_bytes,
+          max_temporary_bytes: $max_temporary_bytes
+        }
+      },
+      {
         id: "apply_verified_clip",
         class: "end_to_end",
         scope: "CLI process tree including FFmpeg and verification FFprobe",
@@ -311,7 +346,7 @@ jq -n \
       }
     ],
     derived: {
-      max_command_tree_rss_mib:
+      max_cli_process_tree_rss_mib:
         ([
           $catalog_metrics[0].max_rss_kib,
           $schema_metrics[0].max_rss_kib,
@@ -320,13 +355,17 @@ jq -n \
           $apply_metrics[0].max_rss_kib,
           $verify_metrics[0].max_rss_kib
         ] | max | . / 1024),
+      backend_peak_rss_mib: ($backend_metrics[0].max_rss_kib / 1024),
+      max_observed_temporary_bytes:
+        ([$backend_temporary_bytes, $output_media_bytes] | max),
+      configured_max_temporary_bytes: $max_temporary_bytes,
       contract_max_wall_ms:
         ([
           $catalog_metrics[0].wall_seconds,
           $schema_metrics[0].wall_seconds
         ] | max | . * 1000)
     },
-    threshold_status: "observation_only"
+    threshold_status: "raw_sample"
   }' >"${result_path}"
 
 jq -e '
@@ -363,6 +402,13 @@ jq -e '
   )
   and any(
     .measurements[];
+    .id == "backend_apply_clip"
+      and .result.progress_finished
+      and .result.temporary_output_bytes > 0
+      and .result.temporary_output_bytes <= .result.max_temporary_bytes
+  )
+  and any(
+    .measurements[];
     .id == "apply_verified_clip"
       and .result.progress_events > 0
       and .result.progress_finished
@@ -376,6 +422,8 @@ jq -e '
       and .result.passed
       and .result.checks_passed
   )
+  and .derived.max_observed_temporary_bytes
+    <= .derived.configured_max_temporary_bytes
 ' "${result_path}" >/dev/null
 
 printf 'wrote %s\n' "${result_path}"
