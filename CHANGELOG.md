@@ -27,6 +27,8 @@ semantic versioning.
   receipts stored under a different valid lookup identifier. The reader
   retains exact v0.1 compatibility and documents that legacy format's narrower
   integrity bound.
+- Rejected duplicate keys at every receipt JSON object depth, including
+  content-addressed backend and media evidence maps.
 - Rejected performance evidence with a non-canonical commit identity,
   incomplete runner metadata, a non-raw sample marker, or reused sample paths.
 - Replaced post-publication receipt rollback with no-clobber recovery receipts.

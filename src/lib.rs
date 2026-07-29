@@ -6,6 +6,7 @@ pub mod inspect;
 pub mod model;
 pub mod plan;
 pub mod schema;
+mod strict_json;
 
 pub const ERROR_SCHEMA_VERSION: &str = "avpact.error/v0.1";
 pub const CAPABILITY_SCHEMA_VERSION: &str = "avpact.capability/v0.1";

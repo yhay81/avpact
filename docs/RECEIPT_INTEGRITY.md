@@ -24,7 +24,10 @@ fixed by the typed serializer and pinned by the versioned golden corpus.
 `read_receipt` recomputes the identifier and rejects a mismatch.
 `receipt show <receipt-id>` additionally requires the requested store key to
 equal the embedded identifier, so moving a different valid receipt under an
-existing key also fails closed.
+existing key also fails closed. Before typed deserialization, the bounded
+reader rejects duplicate keys in every JSON object, including evidence maps,
+so first-key-wins and last-key-wins consumers cannot interpret the same receipt
+differently.
 
 ## v0.1 compatibility
 

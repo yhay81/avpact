@@ -121,5 +121,16 @@
       "expected_error_code": "receipt_invalid",
       "reason": "unknown receipt fields must fail closed"
     }
+  ],
+  "raw_rejections": [
+    {
+      "id": "receipt_duplicate_backend_library",
+      "document": "receipt",
+      "base": "receipt.clip.json",
+      "needle": "      \"libavcodec\": \"1.2.3 / 1.2.3\"",
+      "replacement": "      \"libavcodec\": \"tampered first value\",\n      \"libavcodec\": \"1.2.3 / 1.2.3\"",
+      "expected_error_code": "receipt_invalid",
+      "reason": "duplicate map keys must not let JSON consumers disagree about content-addressed backend evidence"
+    }
   ]
 }

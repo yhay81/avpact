@@ -1,8 +1,11 @@
 # Fuzzing AVPact
 
-AVPact continuously fuzzes its untrusted recipe boundary with AddressSanitizer.
-The `recipe_document` target exercises the same bounded JSON parser and semantic
-validator used before AVPact inspects media or invokes a backend.
+AVPact continuously fuzzes its untrusted recipe and receipt boundaries with
+AddressSanitizer. The `recipe_document` target exercises the same bounded JSON
+parser and semantic validator used before AVPact inspects media or invokes a
+backend. The `receipt_document` target exercises the bounded reader, recursive
+duplicate-key rejection, typed schema, content-derived identifier, and semantic
+receipt checks.
 
 Install a current nightly toolchain and the pinned local runner, then run:
 
@@ -12,12 +15,17 @@ mkdir -p fuzz/corpus/recipe_document
 cp tests/fixtures/contracts/v0.1/recipe.clip.json \
   fuzz/corpus/recipe_document/
 cargo +nightly fuzz run recipe_document
+
+mkdir -p fuzz/corpus/receipt_document
+cp tests/fixtures/contracts/v0.2/receipt.clip.json \
+  fuzz/corpus/receipt_document/
+cargo +nightly fuzz run receipt_document
 ```
 
 Pull requests receive a five-minute ClusterFuzzLite code-change run. A
-15-minute batch run executes weekly on `main`. Both use the checked-in example
-recipes as initial corpus material and publish machine-readable findings to
-GitHub code scanning.
+15-minute batch run executes weekly on `main`. They use the checked-in example
+recipes and versioned receipts as initial corpus material and publish
+machine-readable findings to GitHub code scanning.
 Each code-changing `main` update also saves a comparison build so later pull
 requests can distinguish newly introduced crashes. The accumulated corpus is
 pruned after every weekly batch.

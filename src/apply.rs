@@ -1103,6 +1103,18 @@ pub fn read_receipt(path: &Path) -> Result<Receipt, AvpactError> {
             path: path.to_path_buf(),
             source,
         })?;
+    parse_receipt_document(&bytes)
+}
+
+/// Parses and validates one bounded receipt without performing filesystem or
+/// backend I/O.
+///
+/// # Errors
+///
+/// Returns [`AvpactError::ReceiptInvalid`] when the document exceeds the
+/// receipt size bound, contains duplicate JSON object keys, is malformed, or
+/// violates the receipt contract.
+pub fn parse_receipt_document(bytes: &[u8]) -> Result<Receipt, AvpactError> {
     if bytes.len() as u64 > MAX_RECEIPT_DOCUMENT_BYTES {
         return Err(AvpactError::ReceiptInvalid {
             message: format!(
@@ -1111,8 +1123,16 @@ pub fn read_receipt(path: &Path) -> Result<Receipt, AvpactError> {
             ),
         });
     }
+    // Struct deserialization rejects duplicate named fields, but map fields
+    // otherwise retain the last value and make content-addressed evidence
+    // ambiguous to consumers with different duplicate-key behavior.
+    crate::strict_json::reject_duplicate_object_keys(bytes).map_err(|source| {
+        AvpactError::ReceiptInvalid {
+            message: source.to_string(),
+        }
+    })?;
     let receipt: Receipt =
-        serde_json::from_slice(&bytes).map_err(|source| AvpactError::ReceiptInvalid {
+        serde_json::from_slice(bytes).map_err(|source| AvpactError::ReceiptInvalid {
             message: source.to_string(),
         })?;
     validate_receipt(&receipt)?;

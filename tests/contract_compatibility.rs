@@ -229,6 +229,45 @@ fn declared_versioned_mutations_fail_closed_with_stable_error_codes() {
                 case["reason"].as_str().expect("rejection reason")
             );
         }
+
+        if let Some(raw_rejections) = manifest["raw_rejections"].as_array() {
+            for case in raw_rejections {
+                let id = case["id"].as_str().expect("raw rejection id");
+                assert!(
+                    rejection_ids.insert(id.to_owned()),
+                    "duplicate rejection id {id}"
+                );
+                let base_path = root.join(case["base"].as_str().expect("raw rejection base"));
+                let document = fs::read_to_string(&base_path).unwrap_or_else(|error| {
+                    panic!("read raw rejection base {}: {error}", base_path.display())
+                });
+                let needle = case["needle"].as_str().expect("raw rejection needle");
+                assert_eq!(
+                    document.matches(needle).count(),
+                    1,
+                    "raw rejection {id} needle must identify exactly one location"
+                );
+                let replacement = case["replacement"]
+                    .as_str()
+                    .expect("raw rejection replacement");
+                let mutated = document.replacen(needle, replacement, 1);
+                let directory = tempfile::tempdir().expect("raw mutation directory");
+                let path = directory.path().join(format!("{id}.json"));
+                fs::write(&path, mutated).expect("write raw mutation");
+
+                let error = match case["document"].as_str().expect("raw rejection document") {
+                    "receipt" => avpact::apply::read_receipt(&path)
+                        .expect_err("ambiguous receipt must be rejected"),
+                    other => panic!("unsupported raw rejection document type {other}"),
+                };
+                assert_eq!(
+                    error.code(),
+                    case["expected_error_code"].as_str().expect("error code"),
+                    "raw rejection {id}: {}",
+                    case["reason"].as_str().expect("rejection reason")
+                );
+            }
+        }
     }
 }
 
