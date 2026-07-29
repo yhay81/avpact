@@ -29,6 +29,12 @@ jobs:
       - name: Benchmark harness smoke
         shell: bash
         run: bash -n benchmarks/run.sh
+      - name: v1 evidence gate tests
+        run: |
+          python3 -m unittest discover \
+            -s scripts/tests -p 'test_verify_v1_evidence.py'
+          python3 scripts/verify_v1_evidence.py \
+            .github/v1-evidence.json --check-structure
       - name: JSON fixtures
         run: |
           python3 - <<'PY'
