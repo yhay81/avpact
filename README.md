@@ -88,7 +88,11 @@ publishes `clip.mp4` there.
 By default, `apply` stores its receipt under `.avpact/receipts/` beside the
 plan. Run `receipt show <receipt-id> --state-dir <plan-directory>/.avpact` from
 another directory. Use `--receipt-out <path>` on `apply` when an explicit
-standalone receipt path is preferable.
+standalone receipt path is preferable. If receipt persistence fails after
+publication, AVPact retains the verified output, attempts a no-clobber recovery
+receipt beside it, and emits `action: "do_not_retry_apply"` with the relevant
+paths and output SHA-256. Follow
+[the receipt recovery procedure](docs/RECEIPT_RECOVERY.md).
 
 The execution contract applies to every operation:
 
@@ -102,6 +106,7 @@ The execution contract applies to every operation:
 - hard output, temporary-disk, and runtime budgets;
 - destination-adjacent temporary output, verification, then no-clobber
   same-filesystem publication;
+- no-clobber receipt recovery without deleting an already published path;
 - bounded NDJSON progress on stderr and final JSON on stdout;
 - Ctrl-C cancellation with backend process-tree cleanup.
 

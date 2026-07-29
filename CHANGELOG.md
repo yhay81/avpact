@@ -20,6 +20,9 @@ semantic versioning.
 
 - Rejected performance evidence with a non-canonical commit identity,
   incomplete runner metadata, a non-raw sample marker, or reused sample paths.
+- Replaced post-publication receipt rollback with no-clobber recovery receipts.
+  Receipt failures now retain the verified output and emit its SHA-256, both
+  receipt paths, recovery persistence state, and an explicit no-retry action.
 
 ## [0.3.0] - 2026-07-29
 

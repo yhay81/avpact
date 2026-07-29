@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use serde_json::{Value, json};
@@ -137,6 +137,91 @@ fn cli_runs_the_clip_workflow_with_json_contracts() {
         avpact::VERIFICATION_SCHEMA_VERSION
     );
     assert_eq!(verification["passed"], true);
+}
+
+#[test]
+fn cli_emits_machine_actionable_receipt_recovery_error() {
+    if !is_available("ffmpeg") || !is_available("ffprobe") {
+        eprintln!("skipping CLI receipt recovery test: ffmpeg or ffprobe is unavailable");
+        return;
+    }
+
+    let directory = tempfile::tempdir().expect("temporary directory");
+    let source = directory.path().join("source.mp4");
+    let output = directory.path().join("clip.mp4");
+    let recipe = directory.path().join("recipe.json");
+    let plan = directory.path().join("plan.json");
+    let receipt = directory
+        .path()
+        .join(format!("{}.json", "receipt".repeat(64)));
+    generate_media(&source);
+    std::fs::write(
+        &recipe,
+        serde_json::to_vec_pretty(&json!({
+            "schema_version": avpact::RECIPE_SCHEMA_VERSION,
+            "operation": {
+                "type": "clip",
+                "input": "source.mp4",
+                "output": "clip.mp4",
+                "start_ms": 100,
+                "end_ms": 400
+            }
+        }))
+        .expect("serialize recipe"),
+    )
+    .expect("write recipe");
+
+    let planned = Command::new(env!("CARGO_BIN_EXE_avpact"))
+        .arg("plan")
+        .arg(&recipe)
+        .arg("--out")
+        .arg(&plan)
+        .args(["--format", "json"])
+        .output()
+        .expect("run plan command");
+    assert!(
+        planned.status.success(),
+        "plan stderr: {}",
+        String::from_utf8_lossy(&planned.stderr)
+    );
+
+    let applied = Command::new(env!("CARGO_BIN_EXE_avpact"))
+        .arg("apply")
+        .arg(&plan)
+        .arg("--receipt-out")
+        .arg(&receipt)
+        .args(["--progress", "ndjson", "--format", "json"])
+        .output()
+        .expect("run apply command");
+    assert!(!applied.status.success());
+    assert!(applied.stdout.is_empty());
+    assert!(output.is_file());
+
+    let error: Value = String::from_utf8_lossy(&applied.stderr)
+        .lines()
+        .last()
+        .map(serde_json::from_str)
+        .expect("error line")
+        .expect("error JSON");
+    assert_eq!(error["schema_version"], avpact::ERROR_SCHEMA_VERSION);
+    assert_eq!(error["error"]["code"], "receipt_recovery_required");
+    assert_eq!(error["error"]["recovery"]["action"], "do_not_retry_apply");
+    assert_eq!(
+        error["error"]["recovery"]["recovery_receipt_persisted"],
+        true
+    );
+    assert_eq!(
+        error["error"]["recovery"]["output_sha256"]
+            .as_str()
+            .map(str::len),
+        Some(64)
+    );
+    let recovery_receipt = PathBuf::from(
+        error["error"]["recovery"]["recovery_receipt"]
+            .as_str()
+            .expect("recovery receipt path"),
+    );
+    assert!(recovery_receipt.is_file());
 }
 
 fn generate_media(media: &Path) {
