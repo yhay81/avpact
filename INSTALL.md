@@ -43,10 +43,12 @@ available codecs and filters before using AVPact in automation.
 Run PowerShell in a clean temporary directory:
 
 ```powershell
+$ErrorActionPreference = "Stop"
 $version = "v0.3.0"
 $archive = "avpact-$version-windows-x86_64.zip"
 gh release download $version --repo yhay81/avpact `
   --pattern $archive --pattern "SHA256SUMS"
+if ($LASTEXITCODE -ne 0) { throw "Release download failed" }
 $checksumLine = Get-Content SHA256SUMS |
   Where-Object { ($_ -split '\s+')[1] -eq "./$archive" }
 if (-not $checksumLine) { throw "Archive checksum not found" }
@@ -54,12 +56,14 @@ $expected = ($checksumLine -split '\s+')[0].ToLowerInvariant()
 $actual = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($actual -ne $expected) { throw "Checksum mismatch" }
 gh attestation verify $archive --repo yhay81/avpact
+if ($LASTEXITCODE -ne 0) { throw "Attestation verification failed" }
 Expand-Archive $archive -DestinationPath .
 $bin = Join-Path $HOME ".local\bin"
 New-Item -ItemType Directory -Force $bin | Out-Null
 Copy-Item "avpact-$version-windows-x86_64\avpact.exe" `
   (Join-Path $bin "avpact.exe") -Force
 & (Join-Path $bin "avpact.exe") --version
+if ($LASTEXITCODE -ne 0) { throw "Installed binary failed" }
 ```
 
 Add `$HOME\.local\bin` to the user `PATH` if necessary.
