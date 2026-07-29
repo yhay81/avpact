@@ -1,8 +1,7 @@
 # AVPact performance baseline
 
-This directory defines the reproducible, observation-only baseline used to
-calibrate AVPact's v1.0 performance and resource thresholds. Timing and memory
-are not yet release thresholds.
+This directory defines and enforces AVPact's reproducible v1.0 performance and
+resource thresholds on pull requests and in the weekly scheduled benchmark.
 
 ## Workload
 
@@ -12,6 +11,7 @@ are not yet release thresholds.
 - the compact contract catalog and complete plan JSON Schema;
 - inspection of the synthetic input;
 - compilation of a 100–400 ms clip plan;
+- FFmpeg executed independently from the exact planned argument vector;
 - application, progress emission, verification, and atomic publication;
 - an independent verification of the published output.
 
@@ -23,15 +23,33 @@ identity, and the exact AVPact commit. Media generation and the release build
 are excluded.
 
 The inspect and plan samples deliberately include hashing and FFprobe/FFmpeg
-preflight work. They are reproducible end-to-end upper bounds, not a claim
-about isolated planner latency. The apply RSS is labeled as a CLI process-tree
-observation; the current harness does not claim a separately sampled parent and
-backend high-water mark.
+preflight work. The 250 ms planning threshold is applied to that stronger
+end-to-end measurement, so the planner alone cannot exceed it. CLI GNU `time`
+RSS includes any observed children and therefore upper-bounds the AVPact
+parent. The independent FFmpeg invocation reports backend RSS separately and
+records the completed temporary media size.
+
+Each sample generates its own fixture and performs an untimed release build.
+The workflow discards one warm-up and captures 20 samples on the same runner
+image and FFmpeg build.
+
+## Enforced thresholds
+
+The versioned policy in `thresholds.json` enforces:
+
+- contract generation and end-to-end planning below 250 ms p95;
+- AVPact CLI process-tree RSS no greater than 256 MiB in every sample;
+- isolated FFmpeg RSS no greater than 256 MiB in every sample;
+- observed temporary media no greater than the 12 MiB fixture budget.
+
+Twenty samples make nearest-rank p95 the second-slowest observation. Once
+`baseline-ubuntu24.json` is present, each metric must also remain within the
+stricter of its absolute limit and a versioned noise allowance.
 
 ## Run
 
-The supported measurement environment is the `ubuntu-latest` GitHub-hosted
-runner and distribution FFmpeg selected by
+The supported measurement environment is the `ubuntu-24.04` x86_64
+GitHub-hosted runner and distribution FFmpeg selected by
 `.github/workflows/benchmark.yml`. Run it manually with the **Benchmark**
 workflow, or on a compatible Linux machine:
 
@@ -40,14 +58,19 @@ benchmarks/run.sh benchmark-results.json
 jq . benchmark-results.json
 ```
 
+Run evaluator tests with:
+
+```bash
+python3 -m unittest benchmarks/test_evaluate.py
+```
+
 GNU `time`, GNU `stat`, `timeout`, FFmpeg, FFprobe, `jq`, Git, Cargo, and the
 locked Rust dependency graph are required. Generated media, plans, receipts,
 and intermediate output are temporary and are not uploaded.
 
-The workflow retains raw JSON for 90 days. Pull requests gate semantic
-correctness, bounds, publication cleanup, and verification—not observed timing
-or memory. A single shared-runner sample is not a regression and does not
-establish p95. Before enabling v1.0 performance gates, publish an isolated
-planner measurement, separate parent/backend memory observations,
-temporary-disk high-water measurement, runner and FFmpeg baseline window,
-warm-up and sample policy, p95 calculation, and a noise-aware regression rule.
+The workflow uploads all 20 raw samples and the aggregate evaluation for 90
+days, including raw samples from a failed evaluation. The checked-in baseline
+is refreshed only from a successful evaluation of the exact commit on the
+fixed runner class. AVPact's runtime still enforces configured diagnostic,
+progress, receipt, runtime, output, and temporary-file bounds independently of
+the benchmark.

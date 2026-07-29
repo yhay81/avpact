@@ -1,0 +1,89 @@
+{
+  "schema_version": "benchmark.thresholds.v1",
+  "benchmark_schema_version": "avpact.benchmark.v1",
+  "runner": {
+    "os": "Linux",
+    "arch": "x86_64",
+    "image": "ubuntu24"
+  },
+  "warmup_count": 1,
+  "sample_count": 20,
+  "metrics": [
+    {
+      "id": "contract_generation_wall_p95",
+      "description": "Slower of schema catalog and complete plan-schema generation",
+      "source": {
+        "kind": "derived",
+        "field": "contract_max_wall_ms"
+      },
+      "statistic": "p95",
+      "maximum": 250.0,
+      "unit": "milliseconds",
+      "regression": {
+        "max_ratio": 1.5,
+        "absolute_tolerance": 25.0
+      }
+    },
+    {
+      "id": "plan_end_to_end_wall_p95",
+      "description": "Clip planning including recipe I/O, hashing, FFprobe, and FFmpeg capability checks",
+      "source": {
+        "kind": "measurement_process",
+        "measurement_id": "plan_synthetic_clip",
+        "field": "wall_seconds"
+      },
+      "statistic": "p95",
+      "maximum": 0.25,
+      "unit": "seconds",
+      "regression": {
+        "max_ratio": 1.5,
+        "absolute_tolerance": 0.1
+      }
+    },
+    {
+      "id": "cli_process_tree_rss_max",
+      "description": "Peak RSS upper bound for AVPact parent processes, including any measured children",
+      "source": {
+        "kind": "derived",
+        "field": "max_cli_process_tree_rss_mib"
+      },
+      "statistic": "max",
+      "maximum": 256.0,
+      "unit": "MiB",
+      "regression": {
+        "max_ratio": 1.5,
+        "absolute_tolerance": 16.0
+      }
+    },
+    {
+      "id": "backend_rss_max",
+      "description": "Peak RSS of FFmpeg executed independently from the exact planned argv",
+      "source": {
+        "kind": "derived",
+        "field": "backend_peak_rss_mib"
+      },
+      "statistic": "max",
+      "maximum": 256.0,
+      "unit": "MiB",
+      "regression": {
+        "max_ratio": 1.5,
+        "absolute_tolerance": 16.0
+      }
+    },
+    {
+      "id": "temporary_file_bytes_max",
+      "description": "Largest observed completed temporary media file",
+      "source": {
+        "kind": "derived",
+        "field": "max_observed_temporary_bytes"
+      },
+      "statistic": "max",
+      "maximum": 12582912.0,
+      "unit": "bytes",
+      "regression": {
+        "max_ratio": 1.5,
+        "absolute_tolerance": 1048576.0
+      }
+    }
+  ]
+}
