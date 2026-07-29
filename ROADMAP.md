@@ -113,11 +113,12 @@ does not substitute for these gates.
 - Backend capability differences never cause a silent operation, codec, or
   accuracy downgrade; the plan records every authorized fallback.
 
-Current evidence: the checked-in v0.1 contract corpus freezes a valid recipe,
-semantically valid plan, and validated receipt, plus declared fail-closed
-mutations. It verifies exact serialization and stable structured error codes on
-all CI operating systems. A second released minor version and its migration or
-no-migration evidence are still required.
+Current evidence: v0.2 and v0.3 provide two released compatibility cycles. The
+current v0.3 reader accepts the digest-pinned v0.1 recipe, plan, and receipt
+corpus byte-for-byte, including declared fail-closed mutations, on every CI
+operating system. The v0.2 and v0.3 release notes record contract
+preservation; no migration is required. Future contract versions must add
+their own golden documents and an explicit migration or no-migration decision.
 
 ### Correctness and security
 
