@@ -143,6 +143,14 @@ decision.
   high findings are resolved.
 - No known critical or high-severity vulnerability is open at release time.
 
+Current evidence: the published 60-case
+[adversarial safety corpus](tests/fixtures/adversarial/README.md) passes all
+five required classes at 100% detection (60/60), with zero unintended
+destination changes and zero leaked temporary paths. The scorer executes the
+production planning, apply, verification, and current-receipt parsing paths
+against generated media inside a temporary sandbox on every supported CI
+operating system.
+
 ### Performance and bounds
 
 - Planning and contract generation remain below 250 ms p95 on the published

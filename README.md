@@ -126,6 +126,12 @@ accepted v0.1 recipes, plans, and receipts plus the content-addressed v0.2
 receipt. CI checks exact round trips, semantic validation, fixture digests, and
 fail-closed behavior for declared tampering cases.
 
+The published [adversarial safety corpus](tests/fixtures/adversarial/README.md)
+exercises 60 labeled input-identity, current-receipt, output-verification,
+input/output-alias, and existing-destination cases through production paths.
+The reproducible score is 60/60 detected with zero unintended destination
+changes and zero leaked temporary paths.
+
 The versioned [performance harness](benchmarks/README.md) enforces contract,
 end-to-end plan, CLI process-tree memory, isolated backend memory, and
 temporary-file thresholds from 20 samples over project-generated synthetic

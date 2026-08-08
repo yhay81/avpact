@@ -13,6 +13,10 @@ semantic versioning.
   verification report, and publication evidence.
 - Added a digest-pinned v0.2 golden receipt and fail-closed mutations for every
   evidence category, plus receipt-store lookup-key substitution coverage.
+- Added a published 60-case adversarial safety corpus covering input identity
+  changes, current-format receipt mutation, output-verification failure, unsafe
+  input/output aliasing, and existing-destination protection, with reproducible
+  100% detection and zero destination changes or temporary-path leaks.
 - Added platform-specific, checksum- and provenance-verified native
   installation, update, and removal guidance.
 - Added weekly installation smoke tests on Linux x86_64, macOS Apple Silicon
