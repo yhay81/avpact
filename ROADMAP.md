@@ -186,6 +186,14 @@ nearest-rank p95 and versioned noise-aware regression limits.
 Maintainer-authored fixtures, automated downloads, stars, and synthetic
 accounts cannot satisfy adoption gates.
 
+The release workflow enforces these criteria for every v1 or later tag with
+the reviewable [v1 evidence manifest](.github/v1-evidence.json). Its verifier
+checks the exact release version, all gate evidence, the independent review
+scope and finding counts, the 30-day cross-platform CI window, maintainer
+continuity, distinct adopters, repeat-use dates, a public integration, and a
+resolved non-maintainer contribution. The checked-in manifest remains
+explicitly pending until real evidence satisfies every criterion.
+
 ## Current environment note
 
 The initial development environment has FFmpeg and FFprobe 8.1.2. Unit tests

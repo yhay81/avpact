@@ -7,7 +7,29 @@ a release tag.
    `Cargo.toml`, and `Cargo.lock` use the same version.
 2. Confirm the release commit is on `main`, the worktree is clean, and all
    required CI checks pass without exceptions.
-3. Run the local release gate:
+3. Validate the checked-in v1 evidence manifest:
+
+   ```bash
+   python3 scripts/verify_v1_evidence.py \
+     .github/v1-evidence.json --check-structure
+   ```
+
+   For every v1 or later release, update the manifest with public, reviewable
+   evidence for the exact target version, then require every gate:
+
+   ```bash
+   python3 scripts/verify_v1_evidence.py \
+     .github/v1-evidence.json \
+     --require-ready \
+     --release-version 1.0.0
+   ```
+
+   The verifier derives readiness from the evidence. Do not add a bypass,
+   suppress a failed gate, count maintainer activity as adoption, or move
+   evidence dates forward. The CI window must end on the manifest's `as_of`
+   date and include one public successful-run URL for every required continuous
+   track on every date in the window.
+4. Run the local release gate:
 
    ```bash
    cargo fmt --check
@@ -17,21 +39,23 @@ a release tag.
    cargo build --release --locked
    ```
 
-4. Confirm the Linux, macOS, and Windows CI matrix, declared MSRV, dependency
+5. Confirm the Linux, macOS, and Windows CI matrix, declared MSRV, dependency
    audit, generated schemas, and documented examples are green.
-5. Create and push a signed annotated tag:
+6. Create and push a signed annotated tag:
 
    ```bash
    git tag -s v0.3.0 -m "AVPact 0.3.0"
    git push origin v0.3.0
    ```
 
-6. The release workflow builds native archives, includes shell completions and
+7. The release workflow validates the evidence manifest for every release and
+   refuses any v1+ tag whose exact-version evidence is incomplete. It then
+   builds native archives, includes shell completions and
    documentation, generates a CycloneDX SBOM and `SHA256SUMS`, creates the
    GitHub release, and publishes GitHub/Sigstore build provenance and SBOM
    attestations. Each archive includes a downloadable `.intoto.jsonl`
    provenance bundle for local verification.
-7. From a clean temporary directory, verify a downloaded archive:
+8. From a clean temporary directory, verify a downloaded archive:
 
    ```bash
    sha256sum --check SHA256SUMS
@@ -46,11 +70,11 @@ a release tag.
      --predicate-type https://cyclonedx.org/bom
    ```
 
-8. Extract every archive, run `avpact --version`, generate a completion script,
+9. Extract every archive, run `avpact --version`, generate a completion script,
    and execute `avpact schema --brief --format json`. On at least one supported
    platform with FFmpeg, also run a generated-media inspect/plan/apply/verify
    smoke test.
-9. Confirm that the release notes link to the changelog, installation
+10. Confirm that the release notes link to the changelog, installation
    instructions, checksums, SBOM, and security reporting policy.
 
 ## crates.io
