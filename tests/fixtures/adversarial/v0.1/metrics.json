@@ -1,0 +1,46 @@
+{
+  "by_category": {
+    "existing_destination": {
+      "cases": 10,
+      "destination_changes": 0,
+      "detected_cases": 10,
+      "detection_rate": 1.0,
+      "leaked_temporary_paths": 0
+    },
+    "input_identity_change": {
+      "cases": 10,
+      "destination_changes": 0,
+      "detected_cases": 10,
+      "detection_rate": 1.0,
+      "leaked_temporary_paths": 0
+    },
+    "output_verification_failure": {
+      "cases": 10,
+      "destination_changes": 0,
+      "detected_cases": 10,
+      "detection_rate": 1.0,
+      "leaked_temporary_paths": 0
+    },
+    "receipt_mutation": {
+      "cases": 20,
+      "destination_changes": 0,
+      "detected_cases": 20,
+      "detection_rate": 1.0,
+      "leaked_temporary_paths": 0
+    },
+    "unsafe_alias": {
+      "cases": 10,
+      "destination_changes": 0,
+      "detected_cases": 10,
+      "detection_rate": 1.0,
+      "leaked_temporary_paths": 0
+    }
+  },
+  "corpus_sha256": "2175b8a1d5effb18d6e2528c9a331ebe91029d17aefa4b1a6f4be49a887ba831",
+  "destination_changes": 0,
+  "detected_cases": 60,
+  "detection_rate": 1.0,
+  "leaked_temporary_paths": 0,
+  "schema_version": "avpact.adversarial-metrics/v0.1",
+  "total_cases": 60
+}

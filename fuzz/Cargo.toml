@@ -17,3 +17,10 @@ path = "fuzz_targets/recipe_document.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "receipt_document"
+path = "fuzz_targets/receipt_document.rs"
+test = false
+doc = false
+bench = false

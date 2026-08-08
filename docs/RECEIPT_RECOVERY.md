@@ -14,6 +14,11 @@ and attempts to persist the same receipt beside it as:
 .avpact-recovery-<receipt-id>.json
 ```
 
+New recovery receipts use the content-addressed
+`avpact.receipt/v0.2` format and retain the same identifier as the receipt that
+could not be written at the requested path. See
+[receipt integrity](RECEIPT_INTEGRITY.md).
+
 The fallback uses create-new semantics and never overwrites an existing path.
 The CLI exits unsuccessfully with either `receipt_recovery_required` or
 `receipt_recovery_failed`. Its versioned error JSON contains a `recovery`

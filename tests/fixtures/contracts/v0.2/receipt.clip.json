@@ -1,0 +1,90 @@
+{
+  "schema_version": "avpact.receipt/v0.2",
+  "id": "rcpt_968f8c63d087e35132405981da6c248b44cec60f339a5ad5a34c973a533ff482",
+  "plan_id": "plan_71158efb603805455e1e9731247ab037",
+  "plan_digest": "df057581707b46a04725aab2b32d89e0d9710edd2e4a8de89053ef7ae2ebadd1",
+  "started_unix_ms": 1720000000000,
+  "completed_unix_ms": 1720000001000,
+  "elapsed_ms": 1000,
+  "backend": {
+    "name": "ffmpeg",
+    "version": "ffmpeg version fixture",
+    "configuration": "--enable-fixture",
+    "library_versions": {
+      "libavcodec": "1.2.3 / 1.2.3"
+    },
+    "argv": [
+      "-hide_banner",
+      "-nostdin",
+      "-i",
+      "source.mp4",
+      "-n",
+      ".clip.tmp.mp4"
+    ]
+  },
+  "warnings": [
+    {
+      "code": "lossy_encoding",
+      "message": "fixture warning"
+    }
+  ],
+  "verification": {
+    "schema_version": "avpact.verification/v0.1",
+    "plan_id": "plan_71158efb603805455e1e9731247ab037",
+    "passed": true,
+    "output": {
+      "schema_version": "avpact.inspection/v0.1",
+      "source": {
+        "path": "clip.mp4",
+        "size_bytes": 123456,
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "backend": {
+        "name": "ffprobe",
+        "version": "ffprobe version fixture"
+      },
+      "format": {
+        "name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration_ms": 1000,
+        "bit_rate_bps": 987648
+      },
+      "streams": [
+        {
+          "index": 0,
+          "kind": "video",
+          "codec": "h264",
+          "duration_ms": 1000,
+          "video": {
+            "width": 1920,
+            "height": 1080,
+            "pixel_format": "yuv420p",
+            "average_frame_rate": "30/1",
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "16:9"
+          },
+          "disposition": {
+            "default": 1
+          }
+        }
+      ]
+    },
+    "checks": [
+      {
+        "check": "parseable",
+        "passed": true,
+        "expected": "ffprobe accepts the output",
+        "actual": "parsed"
+      },
+      {
+        "check": "output_sha256",
+        "passed": true,
+        "expected": "different SHA-256 digest",
+        "actual": "different SHA-256 digest"
+      }
+    ]
+  },
+  "publication": {
+    "output": "clip.mp4",
+    "method": "same_filesystem_hard_link"
+  }
+}

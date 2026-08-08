@@ -1,3 +1,4 @@
 # Contract fixture digests are byte-level compatibility evidence. Preserve LF
 # bytes even when contributors or CI check out the repository on Windows.
 tests/fixtures/contracts/** text eol=lf
+tests/fixtures/adversarial/** text eol=lf

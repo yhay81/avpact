@@ -283,14 +283,9 @@ where
     let completed_unix_ms = unix_time_ms();
     let elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
     let plan_digest = plan::plan_digest(&plan)?;
-    let id = receipt_id(
-        &plan.id,
-        &verification.output.source.sha256,
-        completed_unix_ms,
-    );
-    let receipt = Receipt {
+    let mut receipt = Receipt {
         schema_version: crate::RECEIPT_SCHEMA_VERSION.to_owned(),
-        id,
+        id: String::new(),
         plan_id: plan.id,
         plan_digest,
         started_unix_ms,
@@ -305,6 +300,7 @@ where
             cleanup_warning,
         },
     };
+    receipt.id = content_receipt_id(&receipt)?;
     Ok(receipt)
 }
 
@@ -1084,7 +1080,16 @@ pub fn receipt_store_path(state_dir: &Path, receipt_id: &str) -> Result<PathBuf,
 
 pub fn read_stored_receipt(state_dir: &Path, receipt_id: &str) -> Result<Receipt, AvpactError> {
     let path = receipt_store_path(state_dir, receipt_id)?;
-    read_receipt(&path)
+    let receipt = read_receipt(&path)?;
+    if receipt.id != receipt_id {
+        return Err(AvpactError::ReceiptInvalid {
+            message: format!(
+                "stored receipt id mismatch; requested {receipt_id}, found {}",
+                receipt.id
+            ),
+        });
+    }
+    Ok(receipt)
 }
 
 pub fn read_receipt(path: &Path) -> Result<Receipt, AvpactError> {
@@ -1098,6 +1103,18 @@ pub fn read_receipt(path: &Path) -> Result<Receipt, AvpactError> {
             path: path.to_path_buf(),
             source,
         })?;
+    parse_receipt_document(&bytes)
+}
+
+/// Parses and validates one bounded receipt without performing filesystem or
+/// backend I/O.
+///
+/// # Errors
+///
+/// Returns [`AvpactError::ReceiptInvalid`] when the document exceeds the
+/// receipt size bound, contains duplicate JSON object keys, is malformed, or
+/// violates the receipt contract.
+pub fn parse_receipt_document(bytes: &[u8]) -> Result<Receipt, AvpactError> {
     if bytes.len() as u64 > MAX_RECEIPT_DOCUMENT_BYTES {
         return Err(AvpactError::ReceiptInvalid {
             message: format!(
@@ -1106,8 +1123,16 @@ pub fn read_receipt(path: &Path) -> Result<Receipt, AvpactError> {
             ),
         });
     }
+    // Struct deserialization rejects duplicate named fields, but map fields
+    // otherwise retain the last value and make content-addressed evidence
+    // ambiguous to consumers with different duplicate-key behavior.
+    crate::strict_json::reject_duplicate_object_keys(bytes).map_err(|source| {
+        AvpactError::ReceiptInvalid {
+            message: source.to_string(),
+        }
+    })?;
     let receipt: Receipt =
-        serde_json::from_slice(&bytes).map_err(|source| AvpactError::ReceiptInvalid {
+        serde_json::from_slice(bytes).map_err(|source| AvpactError::ReceiptInvalid {
             message: source.to_string(),
         })?;
     validate_receipt(&receipt)?;
@@ -1126,16 +1151,19 @@ fn validate_receipt(receipt: &Receipt) -> Result<(), AvpactError> {
     const MAX_RECEIPT_WARNINGS: usize = 128;
     const MAX_WARNING_CHARACTERS: usize = 2_048;
     const MAX_CHECK_CHARACTERS: usize = 4_096;
-    if receipt.schema_version != crate::RECEIPT_SCHEMA_VERSION {
+    if receipt.schema_version != crate::LEGACY_RECEIPT_SCHEMA_VERSION
+        && receipt.schema_version != crate::RECEIPT_SCHEMA_VERSION
+    {
         return Err(AvpactError::ReceiptInvalid {
             message: format!(
-                "unsupported schema_version {:?}; expected {:?}",
+                "unsupported schema_version {:?}; expected {:?} or {:?}",
                 receipt.schema_version,
+                crate::LEGACY_RECEIPT_SCHEMA_VERSION,
                 crate::RECEIPT_SCHEMA_VERSION
             ),
         });
     }
-    validate_receipt_id(&receipt.id)?;
+    validate_receipt_id_for_schema(&receipt.id, &receipt.schema_version)?;
     if receipt
         .plan_id
         .strip_prefix("plan_")
@@ -1217,14 +1245,21 @@ fn validate_receipt(receipt: &Receipt) -> Result<(), AvpactError> {
             message: "receipt publication method is unsupported".to_owned(),
         });
     }
-    let expected_id = receipt_id(
-        &receipt.plan_id,
-        &receipt.verification.output.source.sha256,
-        receipt.completed_unix_ms,
-    );
+    let expected_id = if receipt.schema_version == crate::LEGACY_RECEIPT_SCHEMA_VERSION {
+        legacy_receipt_id(
+            &receipt.plan_id,
+            &receipt.verification.output.source.sha256,
+            receipt.completed_unix_ms,
+        )
+    } else {
+        content_receipt_id(receipt)?
+    };
     if receipt.id != expected_id {
         return Err(AvpactError::ReceiptInvalid {
-            message: "receipt id does not match its recorded execution".to_owned(),
+            message: format!(
+                "receipt id does not match its recorded evidence; expected {expected_id}, found {}",
+                receipt.id
+            ),
         });
     }
     Ok(())
@@ -1236,9 +1271,33 @@ fn validate_receipt_id(receipt_id: &str) -> Result<(), AvpactError> {
         .ok_or_else(|| AvpactError::ReceiptInvalid {
             message: "receipt id must start with rcpt_".to_owned(),
         })?;
-    if !is_lower_hex(digest, 32) {
+    if !is_lower_hex(digest, 32) && !is_lower_hex(digest, 64) {
         return Err(AvpactError::ReceiptInvalid {
-            message: "receipt id must end with 32 lowercase hexadecimal characters".to_owned(),
+            message: "receipt id must end with 32 or 64 lowercase hexadecimal characters"
+                .to_owned(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_receipt_id_for_schema(
+    receipt_id: &str,
+    schema_version: &str,
+) -> Result<(), AvpactError> {
+    validate_receipt_id(receipt_id)?;
+    let digest = receipt_id
+        .strip_prefix("rcpt_")
+        .expect("validate_receipt_id accepted the prefix");
+    let expected_length = if schema_version == crate::LEGACY_RECEIPT_SCHEMA_VERSION {
+        32
+    } else {
+        64
+    };
+    if digest.len() != expected_length {
+        return Err(AvpactError::ReceiptInvalid {
+            message: format!(
+                "{schema_version} receipt ids must contain {expected_length} lowercase hexadecimal characters"
+            ),
         });
     }
     Ok(())
@@ -1251,7 +1310,7 @@ fn is_lower_hex(value: &str, expected_length: usize) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-fn receipt_id(plan_id: &str, output_sha256: &str, completed_unix_ms: u64) -> String {
+fn legacy_receipt_id(plan_id: &str, output_sha256: &str, completed_unix_ms: u64) -> String {
     let mut hasher = Sha256::new();
     hasher.update(plan_id.as_bytes());
     hasher.update([0]);
@@ -1259,6 +1318,37 @@ fn receipt_id(plan_id: &str, output_sha256: &str, completed_unix_ms: u64) -> Str
     hasher.update([0]);
     hasher.update(completed_unix_ms.to_le_bytes());
     format!("rcpt_{}", encode_lower(hasher.finalize()))[..37].to_owned()
+}
+
+#[derive(Serialize)]
+struct ReceiptIdentityMaterial<'a> {
+    schema_version: &'a str,
+    plan_id: &'a str,
+    plan_digest: &'a str,
+    started_unix_ms: u64,
+    completed_unix_ms: u64,
+    elapsed_ms: u64,
+    backend: &'a PlannedBackend,
+    warnings: &'a [PlanWarning],
+    verification: &'a VerificationReport,
+    publication: &'a Publication,
+}
+
+fn content_receipt_id(receipt: &Receipt) -> Result<String, AvpactError> {
+    let material = ReceiptIdentityMaterial {
+        schema_version: &receipt.schema_version,
+        plan_id: &receipt.plan_id,
+        plan_digest: &receipt.plan_digest,
+        started_unix_ms: receipt.started_unix_ms,
+        completed_unix_ms: receipt.completed_unix_ms,
+        elapsed_ms: receipt.elapsed_ms,
+        backend: &receipt.backend,
+        warnings: &receipt.warnings,
+        verification: &receipt.verification,
+        publication: &receipt.publication,
+    };
+    let digest = encode_lower(Sha256::digest(serde_json::to_vec(&material)?));
+    Ok(format!("rcpt_{digest}"))
 }
 
 fn unix_time_ms() -> u64 {
@@ -1399,6 +1489,26 @@ mod tests {
                     && recovery.requested_receipt == requested
                     && recovery.recovery_receipt == expected_recovery
         ));
+    }
+
+    #[test]
+    fn stored_receipt_lookup_rejects_a_different_embedded_id() {
+        let directory = tempfile::tempdir().expect("temporary receipt store");
+        let requested_id = format!("rcpt_{}", "a".repeat(64));
+        let path = receipt_store_path(directory.path(), &requested_id).expect("receipt store path");
+        fs::create_dir_all(path.parent().expect("receipt parent")).expect("create receipt store");
+        fs::write(
+            &path,
+            include_bytes!("../tests/fixtures/contracts/v0.2/receipt.clip.json"),
+        )
+        .expect("write mismatched stored receipt");
+
+        let error = read_stored_receipt(directory.path(), &requested_id)
+            .expect_err("lookup id must match the embedded receipt id");
+
+        assert!(
+            matches!(error, AvpactError::ReceiptInvalid { ref message } if message.contains("stored receipt id mismatch"))
+        );
     }
 
     #[test]

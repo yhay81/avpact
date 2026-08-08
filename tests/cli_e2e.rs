@@ -98,6 +98,15 @@ fn cli_runs_the_clip_workflow_with_json_contracts() {
     }
     assert!(output.is_file());
     let receipt_id = receipt_stdout["id"].as_str().expect("receipt id");
+    let receipt_digest = receipt_id
+        .strip_prefix("rcpt_")
+        .expect("current receipt id prefix");
+    assert_eq!(receipt_digest.len(), 64);
+    assert!(
+        receipt_digest
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    );
     let stored_receipt = state_dir
         .join("receipts")
         .join(format!("{receipt_id}.json"));

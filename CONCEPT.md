@@ -99,6 +99,9 @@ Apply writes to a temporary destination and publishes atomically only after:
 
 The receipt contains the plan digest, backend arguments and version, timings,
 bounded warnings, output digest and properties, and every verification result.
+Current v0.2 receipts derive their full SHA-256 identifier from all of that
+evidence and the publication result. This detects mutation when the expected
+identifier is trusted; it is not an author signature.
 
 ## Initial scope
 

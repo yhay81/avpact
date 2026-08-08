@@ -38,6 +38,11 @@ transfer. Synthetic reproductions are strongly preferred.
 - A plan is executable authority, not a cryptographic signature from a trusted
   author. Apply validates that its argv can be reconstructed from the typed
   plan before execution.
+- A v0.2 receipt identifier is an unkeyed SHA-256 digest over all recorded
+  evidence. Readers detect content mutation and receipt-store key substitution,
+  but the digest does not authenticate an author. Legacy v0.1 receipts bind
+  fewer fields and remain readable only for compatibility; see
+  [receipt integrity](docs/RECEIPT_INTEGRITY.md).
 - Inputs and outputs are local files. Network protocols and DRM circumvention
   are out of scope.
 - Codec and filter vulnerabilities in the selected FFmpeg build remain part of
