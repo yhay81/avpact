@@ -8,8 +8,12 @@ use avpact::plan::Recipe;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-fn corpus_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/contracts/v0.1")
+const CORPUS_VERSIONS: [&str; 2] = ["v0.1", "v0.2"];
+
+fn corpus_root(version: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/contracts")
+        .join(version)
 }
 
 fn read_json(path: &Path) -> Value {
@@ -80,145 +84,224 @@ fn apply_mutation(document: &mut Value, operation: &str, pointer: &str, value: V
 }
 
 #[test]
-fn current_readers_accept_and_preserve_v01_documents() {
-    let root = corpus_root();
-    let manifest = read_json(&root.join("manifest.json"));
-    assert_eq!(manifest["schema_version"], "avpact.contract-corpus/v0.1");
-    let mut declared_paths = BTreeSet::new();
-
-    for entry in manifest["accepted"]
-        .as_array()
-        .expect("accepted corpus entries")
-    {
-        let relative_path = entry["path"].as_str().expect("accepted path");
-        assert!(
-            declared_paths.insert(relative_path.to_owned()),
-            "duplicate accepted fixture {relative_path}"
-        );
-        let path = root.join(relative_path);
-        let bytes = fs::read(&path)
-            .unwrap_or_else(|error| panic!("read accepted fixture {}: {error}", path.display()));
-        let actual_digest = lowercase_hex(Sha256::digest(&bytes));
+fn current_readers_accept_and_preserve_versioned_documents() {
+    for version in CORPUS_VERSIONS {
+        let root = corpus_root(version);
+        let manifest = read_json(&root.join("manifest.json"));
         assert_eq!(
-            actual_digest,
-            entry["sha256"].as_str().expect("accepted SHA-256"),
-            "{relative_path} digest changed"
+            manifest["schema_version"],
+            format!("avpact.contract-corpus/{version}")
         );
-        let value: Value = serde_json::from_slice(&bytes)
-            .unwrap_or_else(|error| panic!("parse accepted fixture {relative_path}: {error}"));
-        assert_eq!(
-            value["schema_version"], entry["schema_version"],
-            "{relative_path} schema version"
-        );
+        let mut declared_paths = BTreeSet::new();
 
-        match entry["document"].as_str().expect("accepted document") {
-            "recipe" => {
-                let recipe: Recipe = serde_json::from_value(value)
-                    .unwrap_or_else(|error| panic!("read recipe {relative_path}: {error}"));
-                assert_eq!(recipe.schema_version, avpact::RECIPE_SCHEMA_VERSION);
-                assert_exact_round_trip(&path, &recipe);
+        for entry in manifest["accepted"]
+            .as_array()
+            .expect("accepted corpus entries")
+        {
+            let relative_path = entry["path"].as_str().expect("accepted path");
+            assert!(
+                declared_paths.insert(relative_path.to_owned()),
+                "duplicate accepted fixture {relative_path}"
+            );
+            let path = root.join(relative_path);
+            let bytes = fs::read(&path).unwrap_or_else(|error| {
+                panic!("read accepted fixture {}: {error}", path.display())
+            });
+            let actual_digest = lowercase_hex(Sha256::digest(&bytes));
+            assert_eq!(
+                actual_digest,
+                entry["sha256"].as_str().expect("accepted SHA-256"),
+                "{relative_path} digest changed"
+            );
+            let value: Value = serde_json::from_slice(&bytes)
+                .unwrap_or_else(|error| panic!("parse accepted fixture {relative_path}: {error}"));
+            assert_eq!(
+                value["schema_version"], entry["schema_version"],
+                "{relative_path} schema version"
+            );
+
+            match entry["document"].as_str().expect("accepted document") {
+                "recipe" => {
+                    let recipe: Recipe = serde_json::from_value(value)
+                        .unwrap_or_else(|error| panic!("read recipe {relative_path}: {error}"));
+                    assert_eq!(recipe.schema_version, avpact::RECIPE_SCHEMA_VERSION);
+                    assert_exact_round_trip(&path, &recipe);
+                }
+                "plan" => {
+                    let plan = avpact::plan::read_plan(&path)
+                        .unwrap_or_else(|error| panic!("read plan {relative_path}: {error}"));
+                    avpact::plan::validate_plan(&plan)
+                        .unwrap_or_else(|error| panic!("validate plan {relative_path}: {error}"));
+                    assert_exact_round_trip(&path, &plan);
+                }
+                "receipt" => {
+                    let receipt = avpact::apply::read_receipt(&path)
+                        .unwrap_or_else(|error| panic!("read receipt {relative_path}: {error}"));
+                    assert_exact_round_trip(&path, &receipt);
+                    if let Some(linked_plan) = entry["linked_plan"].as_str() {
+                        let plan = avpact::plan::read_plan(&root.join(linked_plan))
+                            .unwrap_or_else(|error| panic!("read linked plan: {error}"));
+                        assert_eq!(receipt.plan_id, plan.id);
+                        assert_eq!(
+                            receipt.plan_digest,
+                            avpact::plan::plan_digest(&plan).expect("digest linked golden plan")
+                        );
+                    }
+                }
+                other => panic!("unsupported accepted document type {other}"),
             }
-            "plan" => {
-                let plan = avpact::plan::read_plan(&path)
-                    .unwrap_or_else(|error| panic!("read plan {relative_path}: {error}"));
-                avpact::plan::validate_plan(&plan)
-                    .unwrap_or_else(|error| panic!("validate plan {relative_path}: {error}"));
-                assert_exact_round_trip(&path, &plan);
-            }
-            "receipt" => {
-                let receipt = avpact::apply::read_receipt(&path)
-                    .unwrap_or_else(|error| panic!("read receipt {relative_path}: {error}"));
-                assert_exact_round_trip(&path, &receipt);
-            }
-            other => panic!("unsupported accepted document type {other}"),
         }
+
+        let discovered_paths = fs::read_dir(&root)
+            .expect("read corpus directory")
+            .map(|entry| entry.expect("read corpus entry").path())
+            .filter(|path| {
+                path.extension()
+                    .is_some_and(|extension| extension == "json")
+                    && path.file_name().is_some_and(|name| name != "manifest.json")
+            })
+            .map(|path| {
+                path.file_name()
+                    .expect("fixture file name")
+                    .to_string_lossy()
+                    .into_owned()
+            })
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            discovered_paths, declared_paths,
+            "every accepted JSON fixture must be digest-pinned in the manifest"
+        );
     }
-
-    let discovered_paths = fs::read_dir(&root)
-        .expect("read corpus directory")
-        .map(|entry| entry.expect("read corpus entry").path())
-        .filter(|path| {
-            path.extension()
-                .is_some_and(|extension| extension == "json")
-                && path.file_name().is_some_and(|name| name != "manifest.json")
-        })
-        .map(|path| {
-            path.file_name()
-                .expect("fixture file name")
-                .to_string_lossy()
-                .into_owned()
-        })
-        .collect::<BTreeSet<_>>();
-    assert_eq!(
-        discovered_paths, declared_paths,
-        "every accepted JSON fixture must be digest-pinned in the manifest"
-    );
-
-    let plan =
-        avpact::plan::read_plan(&root.join("plan.clip.json")).expect("read linked golden plan");
-    let receipt = avpact::apply::read_receipt(&root.join("receipt.clip.json"))
-        .expect("read linked golden receipt");
-    assert_eq!(receipt.plan_id, plan.id);
-    assert_eq!(
-        receipt.plan_digest,
-        avpact::plan::plan_digest(&plan).expect("digest linked golden plan")
-    );
 }
 
 #[test]
-fn declared_v01_mutations_fail_closed_with_stable_error_codes() {
-    let root = corpus_root();
-    let manifest = read_json(&root.join("manifest.json"));
-    let mut rejection_ids = BTreeSet::new();
+fn declared_versioned_mutations_fail_closed_with_stable_error_codes() {
+    for version in CORPUS_VERSIONS {
+        let root = corpus_root(version);
+        let manifest = read_json(&root.join("manifest.json"));
+        let mut rejection_ids = BTreeSet::new();
 
-    for case in manifest["rejections"]
-        .as_array()
-        .expect("rejection corpus entries")
-    {
-        let id = case["id"].as_str().expect("rejection id");
-        assert!(
-            rejection_ids.insert(id.to_owned()),
-            "duplicate rejection id {id}"
-        );
-        let document_type = case["document"].as_str().expect("rejection document");
-        let base = case["base"].as_str().expect("rejection base");
-        let mut document = read_json(&root.join(base));
-        apply_mutation(
-            &mut document,
-            case["operation"].as_str().expect("mutation operation"),
-            case["pointer"].as_str().expect("mutation pointer"),
-            case["value"].clone(),
-        );
+        for case in manifest["rejections"]
+            .as_array()
+            .expect("rejection corpus entries")
+        {
+            let id = case["id"].as_str().expect("rejection id");
+            assert!(
+                rejection_ids.insert(id.to_owned()),
+                "duplicate rejection id {id}"
+            );
+            let document_type = case["document"].as_str().expect("rejection document");
+            let base = case["base"].as_str().expect("rejection base");
+            let mut document = read_json(&root.join(base));
+            apply_mutation(
+                &mut document,
+                case["operation"].as_str().expect("mutation operation"),
+                case["pointer"].as_str().expect("mutation pointer"),
+                case["value"].clone(),
+            );
 
-        let directory = tempfile::tempdir().expect("mutation directory");
-        let path = directory.path().join(format!("{id}.json"));
-        fs::write(
-            &path,
-            format!(
-                "{}\n",
-                serde_json::to_string_pretty(&document).expect("serialize mutation")
-            ),
-        )
-        .expect("write mutation");
-        let expected_code = case["expected_error_code"]
-            .as_str()
-            .expect("expected error code");
+            let directory = tempfile::tempdir().expect("mutation directory");
+            let path = directory.path().join(format!("{id}.json"));
+            fs::write(
+                &path,
+                format!(
+                    "{}\n",
+                    serde_json::to_string_pretty(&document).expect("serialize mutation")
+                ),
+            )
+            .expect("write mutation");
+            let expected_code = case["expected_error_code"]
+                .as_str()
+                .expect("expected error code");
 
-        let actual_code = match document_type {
-            "recipe" => reject_recipe(&path, directory.path()),
-            "plan" => reject_plan(&path),
-            "receipt" => avpact::apply::read_receipt(&path)
-                .expect_err("mutated receipt must be rejected")
-                .code(),
-            other => panic!("unsupported rejection document type {other}"),
-        };
-        assert_eq!(
-            actual_code,
-            expected_code,
-            "rejection {id}: {}",
-            case["reason"].as_str().expect("rejection reason")
-        );
+            let actual_code = match document_type {
+                "recipe" => reject_recipe(&path, directory.path()),
+                "plan" => reject_plan(&path),
+                "receipt" => avpact::apply::read_receipt(&path)
+                    .expect_err("mutated receipt must be rejected")
+                    .code(),
+                other => panic!("unsupported rejection document type {other}"),
+            };
+            assert_eq!(
+                actual_code,
+                expected_code,
+                "rejection {id}: {}",
+                case["reason"].as_str().expect("rejection reason")
+            );
+        }
+
+        if let Some(raw_rejections) = manifest["raw_rejections"].as_array() {
+            for case in raw_rejections {
+                let id = case["id"].as_str().expect("raw rejection id");
+                assert!(
+                    rejection_ids.insert(id.to_owned()),
+                    "duplicate rejection id {id}"
+                );
+                let base_path = root.join(case["base"].as_str().expect("raw rejection base"));
+                let document = fs::read_to_string(&base_path).unwrap_or_else(|error| {
+                    panic!("read raw rejection base {}: {error}", base_path.display())
+                });
+                let needle = case["needle"].as_str().expect("raw rejection needle");
+                assert_eq!(
+                    document.matches(needle).count(),
+                    1,
+                    "raw rejection {id} needle must identify exactly one location"
+                );
+                let replacement = case["replacement"]
+                    .as_str()
+                    .expect("raw rejection replacement");
+                let mutated = document.replacen(needle, replacement, 1);
+                let directory = tempfile::tempdir().expect("raw mutation directory");
+                let path = directory.path().join(format!("{id}.json"));
+                fs::write(&path, mutated).expect("write raw mutation");
+
+                let error = match case["document"].as_str().expect("raw rejection document") {
+                    "receipt" => avpact::apply::read_receipt(&path)
+                        .expect_err("ambiguous receipt must be rejected"),
+                    other => panic!("unsupported raw rejection document type {other}"),
+                };
+                assert_eq!(
+                    error.code(),
+                    case["expected_error_code"].as_str().expect("error code"),
+                    "raw rejection {id}: {}",
+                    case["reason"].as_str().expect("rejection reason")
+                );
+            }
+        }
     }
+}
+
+#[test]
+fn receipt_show_rejects_store_key_substitution() {
+    let root = corpus_root("v0.2");
+    let receipt = read_json(&root.join("receipt.clip.json"));
+    let embedded_id = receipt["id"].as_str().expect("embedded receipt id");
+    let requested_id = format!("rcpt_{}", "a".repeat(64));
+    assert_ne!(requested_id, embedded_id);
+
+    let state_dir = tempfile::tempdir().expect("receipt state directory");
+    let receipts = state_dir.path().join("receipts");
+    fs::create_dir(&receipts).expect("create receipt directory");
+    fs::copy(
+        root.join("receipt.clip.json"),
+        receipts.join(format!("{requested_id}.json")),
+    )
+    .expect("copy receipt under substituted key");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_avpact"))
+        .args(["receipt", "show", &requested_id, "--state-dir"])
+        .arg(state_dir.path())
+        .output()
+        .expect("run receipt show");
+
+    assert!(!output.status.success());
+    let error: Value = serde_json::from_slice(&output.stderr).unwrap_or_else(|parse_error| {
+        panic!(
+            "parse receipt rejection: {parse_error}; stderr={}",
+            String::from_utf8_lossy(&output.stderr)
+        )
+    });
+    assert_eq!(error["error"]["code"], "receipt_invalid");
 }
 
 fn reject_recipe(path: &Path, directory: &Path) -> &'static str {

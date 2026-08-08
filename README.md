@@ -2,7 +2,7 @@
 
 Declarative, inspectable, and verifiable media transformations.
 
-> Status: 0.2 release. The complete local-file operation set is
+> Status: 0.3 release. The complete local-file operation set is
 > implemented and covered by unit, CLI, and generated-media integration tests.
 
 AVPact compiles a small set of media intents into a deterministic execution plan. The plan records streams, codecs, filters, expected outputs, resource limits, and verification checks before any transformation starts.
@@ -94,6 +94,12 @@ receipt beside it, and emits `action: "do_not_retry_apply"` with the relevant
 paths and output SHA-256. Follow
 [the receipt recovery procedure](docs/RECEIPT_RECOVERY.md).
 
+New receipts use the `avpact.receipt/v0.2` contract. Their full SHA-256
+identifier binds the plan digest, backend identity and arguments, timings,
+warnings, verification report, and publication evidence. The reader retains
+exact v0.1 compatibility; see
+[receipt integrity and its trust boundary](docs/RECEIPT_INTEGRITY.md).
+
 The execution contract applies to every operation:
 
 - explicit default/first stream selection and warnings for dropped streams;
@@ -116,9 +122,15 @@ to retrieve the full JSON Schema for a document.
 
 AVPact's checked-in
 [contract compatibility corpus](tests/fixtures/contracts/README.md) freezes
-accepted v0.1 recipes, plans, and receipts. CI checks exact round trips,
-semantic validation, fixture digests, and fail-closed behavior for declared
-tampering cases.
+accepted v0.1 recipes, plans, and receipts plus the content-addressed v0.2
+receipt. CI checks exact round trips, semantic validation, fixture digests, and
+fail-closed behavior for declared tampering cases.
+
+The published [adversarial safety corpus](tests/fixtures/adversarial/README.md)
+exercises 60 labeled input-identity, current-receipt, output-verification,
+input/output-alias, and existing-destination cases through production paths.
+The reproducible score is 60/60 detected with zero unintended destination
+changes and zero leaked temporary paths.
 
 The versioned [performance harness](benchmarks/README.md) enforces contract,
 end-to-end plan, CLI process-tree memory, isolated backend memory, and

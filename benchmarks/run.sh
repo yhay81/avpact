@@ -151,7 +151,8 @@ jq -e -s '
   and any(.[]; .state == "finished")
 ' "${progress_output}" >/dev/null
 jq -e '
-  .schema_version == "avpact.receipt/v0.1"
+  .schema_version == "avpact.receipt/v0.2"
+  and (.id | test("^rcpt_[0-9a-f]{64}$"))
   and .verification.passed
   and all(.verification.checks[]; .passed)
   and .publication.method == "same_filesystem_hard_link"
