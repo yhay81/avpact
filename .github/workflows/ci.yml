@@ -1,11 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
   schedule:
-    - cron: "17 4 * * *"
+    - cron: "13 7 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -13,6 +11,7 @@ permissions:
 
 jobs:
   quality:
+    timeout-minutes: 1
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,6 +52,7 @@ jobs:
         run: python3 tests/fixtures/adversarial/v0.1/generate_corpus.py --check
 
   audit:
+    timeout-minutes: 1
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -70,6 +70,7 @@ jobs:
         run: cargo +1.88.0 audit --deny warnings
 
   msrv:
+    timeout-minutes: 1
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -83,6 +84,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+    timeout-minutes: 1
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
