@@ -1,7 +1,7 @@
 # Fuzzing AVPact
 
-AVPact continuously fuzzes its untrusted recipe and receipt boundaries with
-AddressSanitizer. The `recipe_document` target exercises the same bounded JSON
+Maintainers can fuzz recipe and receipt inputs locally with AddressSanitizer.
+The `recipe_document` target exercises the same bounded JSON
 parser and semantic validator used before AVPact inspects media or invokes a
 backend. The `receipt_document` target exercises the bounded reader, recursive
 duplicate-key rejection, typed schema, content-derived identifier, and semantic
@@ -14,21 +14,17 @@ cargo install cargo-fuzz --version 0.13.2 --locked
 mkdir -p fuzz/corpus/recipe_document
 cp tests/fixtures/contracts/v0.1/recipe.clip.json \
   fuzz/corpus/recipe_document/
-cargo +nightly fuzz run recipe_document
+cargo +nightly fuzz run recipe_document -- -max_total_time=300
 
 mkdir -p fuzz/corpus/receipt_document
 cp tests/fixtures/contracts/v0.2/receipt.clip.json \
   fuzz/corpus/receipt_document/
-cargo +nightly fuzz run receipt_document
+cargo +nightly fuzz run receipt_document -- -max_total_time=300
 ```
 
-Pull requests receive a five-minute ClusterFuzzLite code-change run. A
-15-minute batch run executes weekly on `main`. They use the checked-in example
-recipes and versioned receipts as initial corpus material and publish
-machine-readable findings to GitHub code scanning.
-Each code-changing `main` update also saves a comparison build so later pull
-requests can distinguish newly introduced crashes. The accumulated corpus is
-pruned after every weekly batch.
+These runs are optional. Each command spends up to five minutes fuzzing after
+the build. Adjust the duration for a longer session. The checked-in contract
+fixtures also run in ordinary pull-request CI.
 
 When a crash is found, retain the minimized input privately until it is known
 not to expose sensitive media paths or metadata. Add a deterministic regression

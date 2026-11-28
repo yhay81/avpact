@@ -1,7 +1,8 @@
 # AVPact performance baseline
 
 This directory defines and enforces AVPact's reproducible v1.0 performance and
-resource thresholds on pull requests and in the weekly scheduled benchmark.
+resource thresholds. Run the Benchmark workflow manually when a change needs
+performance measurements.
 
 ## Workload
 
