@@ -115,6 +115,10 @@ measure "${inspect_metrics}" "${inspect_output}" "${inspect_diagnostics}" \
 measure "${plan_metrics}" "${plan_output}" "${plan_diagnostics}" \
   "${binary}" plan "${recipe}" --out "${plan}" --format json
 
+expected_probe_version="$(ffprobe -version | sed -n '1p')"
+jq -e --arg expected "${expected_probe_version}" \
+  '.backend.version == $expected' "${inspect_output}" >/dev/null
+
 cmp "${plan}" "${plan_output}"
 jq -e '
   .schema_version == "avpact.plan/v0.1"
