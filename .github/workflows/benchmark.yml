@@ -35,9 +35,29 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
+  ffmpeg:
+    name: Fetch Ubuntu FFmpeg packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Download FFmpeg and its runtime dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/ffmpeg-debs/partial"
+          sudo apt-get update
+          sudo apt-get --yes --download-only --reinstall --no-install-recommends \
+            -o "Dir::Cache::archives=$RUNNER_TEMP/ffmpeg-debs" install ffmpeg
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ubuntu-ffmpeg-packages
+          path: ${{ runner.temp }}/ffmpeg-debs/*.deb
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+          overwrite: true
+
   benchmark:
     name: Enforce performance thresholds
-    needs: build
+    needs: [build, ffmpeg]
     runs-on: ubuntu-24.04
     timeout-minutes: 1
     steps:
@@ -52,10 +72,12 @@ jobs:
         run: |
           tar -xzf "$RUNNER_TEMP/benchmark-tool/benchmark-binary.tar.gz" -C "$RUNNER_TEMP/benchmark-tool"
           echo "BENCHMARK_BINARY=$RUNNER_TEMP/benchmark-tool/avpact" >> "$GITHUB_ENV"
-      - name: Install FFmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes ffmpeg
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ubuntu-ffmpeg-packages
+          path: ${{ runner.temp }}/ffmpeg-debs
+      - name: Install Ubuntu FFmpeg from the downloaded packages
+        run: sudo apt-get --yes --no-download --no-install-recommends install "$RUNNER_TEMP"/ffmpeg-debs/*.deb
       - name: Test benchmark evaluator
         run: python3 -m unittest benchmarks/test_evaluate.py
       - name: Warm benchmark media and code paths
