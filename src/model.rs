@@ -110,10 +110,17 @@ pub struct AudioSummary {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ProbeDocument {
+    pub program_version: Option<ProbeProgramVersion>,
     #[serde(default)]
     pub format: ProbeFormat,
     #[serde(default)]
     pub streams: Vec<ProbeStream>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct ProbeProgramVersion {
+    pub version: String,
+    pub copyright: String,
 }
 
 #[derive(Debug, Default, Deserialize)]
