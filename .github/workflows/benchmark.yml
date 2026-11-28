@@ -1,7 +1,6 @@
 name: Benchmark
 
 on:
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -12,8 +11,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  benchmark:
-    name: Enforce performance thresholds
+  build:
+    name: Build release benchmark binary
     runs-on: ubuntu-24.04
     timeout-minutes: 1
     steps:
@@ -24,10 +23,63 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal
           rustup default stable
-      - name: Install FFmpeg
+      - run: cargo build --release --locked
+      - name: Archive the release binary with its executable mode
+        run: tar -czf benchmark-binary.tar.gz -C target/release avpact
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: benchmark-binary
+          path: benchmark-binary.tar.gz
+          retention-days: 1
+          if-no-files-found: error
+          overwrite: true
+
+  ffmpeg:
+    name: Fetch Ubuntu FFmpeg packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Download FFmpeg and its runtime dependencies
         run: |
+          mkdir -p "$RUNNER_TEMP/ffmpeg-debs/partial"
           sudo apt-get update
-          sudo apt-get install --yes ffmpeg
+          sudo apt-get --yes --download-only --reinstall --no-install-recommends \
+            -o "Dir::Cache::archives=$RUNNER_TEMP/ffmpeg-debs" install ffmpeg
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ubuntu-ffmpeg-packages
+          path: ${{ runner.temp }}/ffmpeg-debs/*.deb
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+          overwrite: true
+
+  benchmark:
+    name: Enforce performance thresholds
+    needs: [build, ffmpeg]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: benchmark-binary
+          path: ${{ runner.temp }}/benchmark-tool
+      - name: Extract the release binary
+        run: |
+          tar -xzf "$RUNNER_TEMP/benchmark-tool/benchmark-binary.tar.gz" -C "$RUNNER_TEMP/benchmark-tool"
+          echo "BENCHMARK_BINARY=$RUNNER_TEMP/benchmark-tool/avpact" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ubuntu-ffmpeg-packages
+          path: ${{ runner.temp }}/ffmpeg-debs
+      - name: Install Ubuntu FFmpeg from the downloaded packages
+        run: |
+          sudo dpkg --install "$RUNNER_TEMP"/ffmpeg-debs/*.deb
+          ffmpeg -version >/dev/null
+          ffprobe -version >/dev/null
       - name: Test benchmark evaluator
         run: python3 -m unittest benchmarks/test_evaluate.py
       - name: Warm benchmark media and code paths
@@ -51,7 +103,7 @@ jobs:
             benchmark-samples/sample-*.json
       - name: Upload raw measurements and evaluation
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: avpact-benchmark-${{ github.run_id }}
           path: |

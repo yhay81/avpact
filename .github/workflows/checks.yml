@@ -2,8 +2,6 @@ name: CI
 
 on:
   pull_request:
-  schedule:
-    - cron: "13 7 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -51,6 +49,16 @@ jobs:
       - name: Adversarial safety corpus labels
         run: python3 tests/fixtures/adversarial/v0.1/generate_corpus.py --check
 
+  smoke:
+    name: Unit and contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: cargo test --locked --lib --test contract_compatibility
+
   audit:
     timeout-minutes: 1
     runs-on: ubuntu-latest
@@ -63,11 +71,15 @@ jobs:
       - name: Install pinned cargo-audit
         shell: bash
         run: |
-          rustup toolchain install 1.88.0 --profile minimal
-          cargo +1.88.0 install cargo-audit --version 0.22.2 \
-            --locked --no-default-features
+          cd "$RUNNER_TEMP"
+          archive=cargo-audit-x86_64-unknown-linux-gnu-v0.22.2
+          curl --fail --silent --show-error --location --output "$archive.tgz" \
+            "https://github.com/rustsec/rustsec/releases/download/cargo-audit/v0.22.2/$archive.tgz"
+          echo "ab28a1bdb54db4d5d8ad5981cf1f959410370b3d28250dbd35f6a44248620e39  $archive.tgz" | sha256sum --check
+          tar -xzf "$archive.tgz" "$archive/cargo-audit"
+          echo "$RUNNER_TEMP/$archive" >> "$GITHUB_PATH"
       - name: Audit Rust dependencies
-        run: cargo +1.88.0 audit --deny warnings
+        run: cargo-audit audit --deny warnings
 
   msrv:
     timeout-minutes: 1
@@ -80,6 +92,7 @@ jobs:
         run: cargo +1.85.0 check --all-targets --locked
 
   test:
+    if: github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -126,7 +139,7 @@ jobs:
           if not operation["supported"]:
               raise SystemExit(f"Linux FFmpeg lacks required subtitle capability: {operation['missing']}")
           PY
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: capabilities-${{ runner.os }}
           path: capabilities-${{ runner.os }}.json

@@ -18,6 +18,15 @@ fn inspects_generated_audio_video_media_when_ffmpeg_is_available() {
     let report =
         avpact::inspect::inspect(&media, Path::new("ffprobe")).expect("inspect generated media");
 
+    let version = Command::new("ffprobe")
+        .arg("-version")
+        .output()
+        .expect("read the FFprobe version banner");
+    assert!(version.status.success());
+    assert_eq!(
+        Some(report.backend.version.as_str()),
+        String::from_utf8_lossy(&version.stdout).lines().next()
+    );
     assert_eq!(report.format.duration_ms, Some(500));
     assert!(report.source.size_bytes > 0);
     assert_eq!(report.source.sha256.len(), 64);

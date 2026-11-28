@@ -609,19 +609,26 @@ pub fn validate_plan(plan: &Plan) -> Result<Vec<String>, AvpactError> {
     {
         return invalid_plan("resource estimates exceed plan limits");
     }
-    let expected_id = expected_plan_id(plan)?;
+    let mut output_frame_rate = segment_output_frame_rate(&plan.operation, &plan.expected);
+    let expected_id = expected_plan_id(plan, output_frame_rate)?;
     if plan.id != expected_id {
-        return invalid_plan(format!(
-            "plan id mismatch; expected {expected_id}, found {}",
-            plan.id
-        ));
+        // Earlier clip and concatenate plans left the encoder frame rate implicit.
+        // Their identifiers and their exact, reconstructed argv must still agree.
+        if output_frame_rate.is_some() && plan.id == expected_plan_id(plan, None)? {
+            output_frame_rate = None;
+        } else {
+            return invalid_plan(format!(
+                "plan id mismatch; expected {expected_id}, found {}",
+                plan.id
+            ));
+        }
     }
     let expected_temporary = temporary_output_path(&plan.output.path, &plan.id)?;
     if plan.output.temporary_path != expected_temporary {
         return invalid_plan("temporary output path does not match the plan id");
     }
 
-    let expected_argv = match &plan.operation {
+    let mut expected_argv = match &plan.operation {
         PlannedOperation::Clip {
             start_ms,
             end_ms,
@@ -668,6 +675,7 @@ pub fn validate_plan(plan: &Plan) -> Result<Vec<String>, AvpactError> {
         } => validate_contact_sheet_plan(plan, *interval_ms, *columns, *rows, *width, *height)?,
         PlannedOperation::BurnSubtitles => validate_burn_subtitles_plan(plan)?,
     };
+    set_output_frame_rate(&mut expected_argv, output_frame_rate);
     if plan.backend.argv != expected_argv {
         return invalid_plan("backend argv does not match the typed plan");
     }
@@ -2107,6 +2115,7 @@ where
         max_bytes: resources.max_output_bytes,
     });
     verification_checks.push(VerificationCheck::DistinctFromInputs);
+    let output_frame_rate = segment_output_frame_rate(&operation, &expected);
     let identity_material = PlanIdentityMaterial {
         recipe_digest: &inputs.recipe_digest,
         constraints_digest: &inputs.constraints_digest,
@@ -2122,10 +2131,12 @@ where
         verification_checks: &verification_checks,
         warnings: &warnings,
         resources: &resources,
+        output_frame_rate,
     };
     let id = format!("plan_{}", &digest_json(&identity_material)?[..32]);
     let temporary_path = temporary_output_path(&inputs.output, &id)?;
-    let argv = build_argv(&temporary_path);
+    let mut argv = build_argv(&temporary_path);
+    set_output_frame_rate(&mut argv, output_frame_rate);
 
     Ok(Plan {
         schema_version: crate::PLAN_SCHEMA_VERSION.to_owned(),
@@ -2558,6 +2569,29 @@ fn temporary_output_path(output: &Path, id: &str) -> Result<PathBuf, AvpactError
     Ok(output.with_file_name(format!(".{name}.{id}.tmp.{extension}")))
 }
 
+// FFmpeg can infer a different MP4 frame duration after trimming or joining inputs.
+fn segment_output_frame_rate<'a>(
+    operation: &PlannedOperation,
+    expected: &'a ExpectedOutput,
+) -> Option<&'a str> {
+    match operation {
+        PlannedOperation::Clip { .. } | PlannedOperation::Concatenate { .. } => {
+            let rate = expected.video.as_ref()?.average_frame_rate.as_deref()?;
+            let (numerator, denominator) = rate.split_once('/')?;
+            (numerator.parse::<i32>().ok()? > 0 && denominator.parse::<i32>().ok()? > 0)
+                .then_some(rate)
+        }
+        _ => None,
+    }
+}
+
+fn set_output_frame_rate(argv: &mut Vec<String>, frame_rate: Option<&str>) {
+    if let Some(rate) = frame_rate {
+        let output = argv.pop().expect("FFmpeg command has an output");
+        argv.extend(["-r:v".to_owned(), rate.to_owned(), output]);
+    }
+}
+
 fn clip_argv(
     input: &Path,
     temporary_output: &Path,
@@ -2925,9 +2959,11 @@ struct PlanIdentityMaterial<'a> {
     verification_checks: &'a [VerificationCheck],
     warnings: &'a [PlanWarning],
     resources: &'a ResourcePlan,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    output_frame_rate: Option<&'a str>,
 }
 
-fn expected_plan_id(plan: &Plan) -> Result<String, AvpactError> {
+fn expected_plan_id(plan: &Plan, output_frame_rate: Option<&str>) -> Result<String, AvpactError> {
     let material = PlanIdentityMaterial {
         recipe_digest: &plan.recipe_digest,
         constraints_digest: &plan.constraints_digest,
@@ -2943,6 +2979,7 @@ fn expected_plan_id(plan: &Plan) -> Result<String, AvpactError> {
         verification_checks: &plan.verification_checks,
         warnings: &plan.warnings,
         resources: &plan.resources,
+        output_frame_rate,
     };
     Ok(format!("plan_{}", &digest_json(&material)?[..32]))
 }
@@ -3154,9 +3191,24 @@ mod tests {
                 "-f",
                 "mp4",
                 "-n",
+                "-r:v",
+                "30/1",
                 expected_temporary_argument.as_str(),
             ]
         );
+
+        let mut implicit_rate = first.clone();
+        let rate_flag = implicit_rate
+            .backend
+            .argv
+            .iter()
+            .position(|arg| arg == "-r:v")
+            .expect("clip declares an encoder frame rate");
+        implicit_rate.backend.argv.drain(rate_flag..=rate_flag + 1);
+        assert!(matches!(
+            validate_plan(&implicit_rate),
+            Err(AvpactError::PlanInvalid { .. })
+        ));
 
         let mut inspection_tampered = first.clone();
         inspection_tampered.inputs[0].format.long_name = Some("tampered".to_owned());

@@ -5,7 +5,7 @@ export LC_ALL=C
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 result_path="${1:-${root_dir}/benchmark-results.json}"
-binary="${root_dir}/target/release/avpact"
+binary="${BENCHMARK_BINARY:-${root_dir}/target/release/avpact}"
 
 for dependency in cargo cmp ffmpeg ffprobe git grep jq stat timeout uname; do
   command -v "${dependency}" >/dev/null || {
@@ -31,7 +31,10 @@ plan="${workspace}/plan.json"
 receipt="${workspace}/receipt.json"
 
 cd "${root_dir}"
-cargo build --release --locked
+if [[ -z "${BENCHMARK_BINARY:-}" ]]; then
+  cargo build --release --locked
+fi
+test -x "${binary}"
 
 timeout --signal=KILL 60s \
   ffmpeg \
@@ -111,6 +114,10 @@ measure "${inspect_metrics}" "${inspect_output}" "${inspect_diagnostics}" \
   "${binary}" inspect "${source_media}" --format json
 measure "${plan_metrics}" "${plan_output}" "${plan_diagnostics}" \
   "${binary}" plan "${recipe}" --out "${plan}" --format json
+
+expected_probe_version="$(ffprobe -version | sed -n '1p')"
+jq -e --arg expected "${expected_probe_version}" \
+  '.backend.version == $expected' "${inspect_output}" >/dev/null
 
 cmp "${plan}" "${plan_output}"
 jq -e '

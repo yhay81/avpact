@@ -21,6 +21,7 @@ pub fn inspect(path: &Path, ffprobe: &Path) -> Result<InspectionReport, AvpactEr
             "-v",
             "error",
             "-show_error",
+            "-show_program_version",
             "-show_format",
             "-show_streams",
             "-of",
@@ -47,7 +48,10 @@ pub fn inspect(path: &Path, ffprobe: &Path) -> Result<InspectionReport, AvpactEr
             source,
         }
     })?;
-    let version = probe_version(ffprobe)?;
+    let version = match &probe.program_version {
+        Some(program) => format!("ffprobe version {} {}", program.version, program.copyright),
+        None => probe_version(ffprobe)?,
+    };
 
     Ok(normalize(source, version, probe))
 }

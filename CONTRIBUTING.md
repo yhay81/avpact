@@ -26,7 +26,10 @@ cargo test --all-targets --locked
 
 Unit and fixture tests run without FFmpeg. Generated-media integration tests run
 when FFmpeg and FFprobe are available and skip otherwise.
-Untrusted recipe parsing is also covered by the reproducible workflow in
+Pull requests run the Rust unit and contract tests on Linux. To exercise the
+FFmpeg matrix on Linux, macOS, and Windows, run the CI workflow manually.
+To check performance, run the Benchmark workflow. The local fuzz targets
+and corpus setup are documented in
 [FUZZING.md](FUZZING.md).
 
 ## Making a change

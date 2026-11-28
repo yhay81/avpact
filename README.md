@@ -140,8 +140,9 @@ envelope against the checked-in Ubuntu 24.04 baseline.
 
 ## Release integrity
 
-CI tests Linux, macOS, Windows, and the declared Rust 1.85 MSRV. Tagged releases
-contain native archives, documentation, shell completions, SHA-256 checksums,
+PRs run Linux unit and contract tests and check the Rust 1.85 MSRV. Maintainers
+can run the full Linux, macOS, and Windows matrix from the CI workflow.
+Tagged releases contain native archives, documentation, shell completions, SHA-256 checksums,
 CycloneDX SBOMs, and GitHub/Sigstore build provenance and SBOM attestations. See
 [RELEASING.md](RELEASING.md) and [SECURITY.md](SECURITY.md).
 
