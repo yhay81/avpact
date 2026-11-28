@@ -5,7 +5,7 @@ export LC_ALL=C
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 result_path="${1:-${root_dir}/benchmark-results.json}"
-binary="${root_dir}/target/release/avpact"
+binary="${BENCHMARK_BINARY:-${root_dir}/target/release/avpact}"
 
 for dependency in cargo cmp ffmpeg ffprobe git grep jq stat timeout uname; do
   command -v "${dependency}" >/dev/null || {
@@ -31,7 +31,10 @@ plan="${workspace}/plan.json"
 receipt="${workspace}/receipt.json"
 
 cd "${root_dir}"
-cargo build --release --locked
+if [[ -z "${BENCHMARK_BINARY:-}" ]]; then
+  cargo build --release --locked
+fi
+test -x "${binary}"
 
 timeout --signal=KILL 60s \
   ffmpeg \
