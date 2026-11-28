@@ -77,7 +77,10 @@ jobs:
           name: ubuntu-ffmpeg-packages
           path: ${{ runner.temp }}/ffmpeg-debs
       - name: Install Ubuntu FFmpeg from the downloaded packages
-        run: sudo apt-get --yes --no-download --no-install-recommends install "$RUNNER_TEMP"/ffmpeg-debs/*.deb
+        run: |
+          sudo dpkg --install "$RUNNER_TEMP"/ffmpeg-debs/*.deb
+          ffmpeg -version >/dev/null
+          ffprobe -version >/dev/null
       - name: Test benchmark evaluator
         run: python3 -m unittest benchmarks/test_evaluate.py
       - name: Warm benchmark media and code paths
